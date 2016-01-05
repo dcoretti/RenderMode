@@ -47,5 +47,17 @@
     <ClInclude Include="Memory\Handle.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Types\Mesh.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Types\Material.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Types\Model.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Types\Shader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

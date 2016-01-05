@@ -90,6 +90,7 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <AdditionalIncludeDirectories>C:\Users\DC\Programming\Libraries\glm\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -140,6 +141,10 @@
     <ClInclude Include="Memory\LinearAllocator.h" />
     <ClInclude Include="Memory\PackedArray.h" />
     <ClInclude Include="Memory\SparseArray.h" />
+    <ClInclude Include="Types\Material.h" />
+    <ClInclude Include="Types\Mesh.h" />
+    <ClInclude Include="Types\Model.h" />
+    <ClInclude Include="Types\Shader.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
