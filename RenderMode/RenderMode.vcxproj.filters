@@ -18,12 +18,21 @@
     <ClCompile Include="Command\Command.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Memory\LinearAllocator.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Command\Command.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Dispatch\RenderApiDispatch.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Command\CommandBucket.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Memory\LinearAllocator.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
