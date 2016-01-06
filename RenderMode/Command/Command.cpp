@@ -1,11 +1,19 @@
 #include "Command.h"
 
-void dispatchDrawVertexBuffer(const void * data, const RenderApiDispatch & dispatch) {
-    const DrawVertexBufferCommand * cmdData = static_cast<const DrawVertexBufferCommand *>(data);
+void dispatchDrawIndexedVertexBuffer(const void * data, const RenderApiDispatch & dispatch) {
+    const DrawIndexedVertexBufferCommand * cmdData = static_cast<const DrawIndexedVertexBufferCommand *>(data);
     //dispatch.drawVertexBuffer(cmdData);
 }
 
-void dispatchSetShaders(const void * data, const RenderApiDispatch & dispatch) {
-    const SetShadersCommand * cmdData = static_cast<const SetShadersCommand *>(data);
+void dispatchSetShaderProgram(const void * data, const RenderApiDispatch & dispatch) {
+    const SetShaderProgramCommand * cmdData = static_cast<const SetShaderProgramCommand *>(data);
     //dispatch.setShaders(cmdData);
+}
+
+void dispatchLoadArrayBuffer(const void * data, const RenderApiDispatch & dispatch) {
+    const LoadArrayBufferCommand  *cmdData = static_cast<const LoadArrayBufferCommand *>(data);
+}
+
+void dispatchLoadIndexArrayBuffer(const void * data, const RenderApiDispatch & dispatch) {
+    const LoadIndexArrayBufferCommand  *cmdData = static_cast<const LoadIndexArrayBufferCommand *>(data);
 }

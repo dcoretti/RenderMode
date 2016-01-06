@@ -1,5 +1,6 @@
 #pragma once
 
+#include "../Memory/Handle.h"
 #include "../Dispatch/RenderApiDispatch.h"
 //#include "Types\Handle.h"
 
@@ -11,6 +12,9 @@ struct Command {
 
     // Dispatch function ptr that knows how to decode data and send it to the API level render api
     DispatchCommand dispatch{ nullptr };
+
+    Command * next{ nullptr }; // next command in a group
+    char * extraCmdData;    // Extra data such as shader uniforms, etc.  
 };
 
 
@@ -26,24 +30,55 @@ struct CommandData {
 };
 // TODO how to assert per subtype that dispatchFn != nullptr?
 
-void dispatchDrawVertexBuffer(const void * data, const RenderApiDispatch & dispatch);
-struct DrawVertexBufferCommand : public CommandData < DrawVertexBufferCommand > {
+
+
+
+/////////////////////////////////////
+// commands
+
+void dispatchDrawIndexedVertexBuffer(const void * data, const RenderApiDispatch & dispatch);
+struct DrawIndexedVertexBufferCommand : public CommandData <DrawIndexedVertexBufferCommand> {
     //unsigned int vaoId;
     int numVertices;
     int first;
     //VertexBufferHandle handle;
 };
-const Command::DispatchCommand CommandData<DrawVertexBufferCommand>::dispatchFn = &dispatchDrawVertexBuffer;
+const Command::DispatchCommand CommandData<DrawIndexedVertexBufferCommand>::dispatchFn = &dispatchDrawIndexedVertexBuffer;
 
 
 /*
-* Use a shader program
+* Use a shader program.  Auxilary memory should hold uniform key/values for submission.
 */
-void dispatchSetShaders(const void * data, const RenderApiDispatch & dispatch);
-struct SetShadersCommand : public CommandData < SetShadersCommand > {
+void dispatchSetShaderProgram(const void * data, const RenderApiDispatch & dispatch);
+struct SetShaderProgramCommand : public CommandData <SetShaderProgramCommand> {
     unsigned int programId;
 };
-const Command::DispatchCommand CommandData<SetShadersCommand>::dispatchFn = &dispatchSetShaders;
+const Command::DispatchCommand CommandData<SetShaderProgramCommand>::dispatchFn = &dispatchSetShaderProgram;
 
-// TODO
-//  set lighting params cmd, set uniforms, etc
+
+// Load constant array buffer into the GPU (such as creating a GL_ARRAY_BUFFER)
+void dispatchLoadArrayBuffer(const void * data, const RenderApiDispatch & dispatch);
+struct LoadArrayBufferCommand : public CommandData<LoadArrayBufferCommand> {
+    Handle bufferHandle;
+
+    Handle loadedBufferHandle;  // resulting data will be placed in this location
+    unsigned int vertexCount;
+    unsigned int vertexComponents;
+    unsigned int stride;
+
+};
+const Command::DispatchCommand CommandData<LoadArrayBufferCommand>::dispatchFn = &dispatchLoadArrayBuffer;
+
+
+// Load constant index buffer into the gpu (GL_ELEMENT_ARRAY_BUFFER for GL)
+void dispatchLoadIndexArrayBuffer(const void * data, const RenderApiDispatch & dispatch);
+struct LoadIndexArrayBufferCommand : public CommandData<LoadIndexArrayBufferCommand> {
+    Handle bufferHandle; // handle to data in local memory pool
+    Handle loadedBufferHandle;  // resulting data will be placed in this location including the id
+
+    unsigned int indexCount;
+    unsigned int offset;
+};
+const Command::DispatchCommand CommandData<LoadIndexArrayBufferCommand>::dispatchFn = &dispatchLoadIndexArrayBuffer;
+
+
