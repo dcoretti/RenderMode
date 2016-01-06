@@ -130,9 +130,11 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Command\Command.cpp" />
+    <ClCompile Include="Command\CommandBucket.cpp" />
     <ClCompile Include="Dispatch\RenderApiDispatch.cpp" />
     <ClCompile Include="Memory\LinearAllocator.cpp" />
     <ClCompile Include="Render\RenderQueue.cpp" />
+    <ClCompile Include="Types\ModelManager.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Command\Command.h" />
@@ -147,6 +149,7 @@
     <ClInclude Include="Types\Material.h" />
     <ClInclude Include="Types\Mesh.h" />
     <ClInclude Include="Types\Model.h" />
+    <ClInclude Include="Types\ModelManager.h" />
     <ClInclude Include="Types\Shader.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

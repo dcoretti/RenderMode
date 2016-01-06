@@ -2,7 +2,6 @@
 
 #include "../Memory/Handle.h"
 #include "../Dispatch/RenderApiDispatch.h"
-//#include "Types\Handle.h"
 
 /*
     General Linked set of commands, each with a set of 
@@ -59,7 +58,7 @@ const Command::DispatchCommand CommandData<SetShaderProgramCommand>::dispatchFn 
 // Load constant array buffer into the GPU (such as creating a GL_ARRAY_BUFFER)
 void dispatchLoadArrayBuffer(const void * data, const RenderApiDispatch & dispatch);
 struct LoadArrayBufferCommand : public CommandData<LoadArrayBufferCommand> {
-    Handle bufferHandle;
+    void * systemBuffer;  // Data stored in system memory to be loaded (move to handle once impl uses that in ModelManager)
 
     Handle loadedBufferHandle;  // resulting data will be placed in this location
     unsigned int vertexCount;

@@ -16,7 +16,7 @@ public:
     int allocate();
     int remove(int index);
     T * get(int index);
-
+    void clear();
     int getSize() { return end; }
 private:
     T * dataArray;
@@ -58,4 +58,10 @@ T * PackedArray<T>::get(int index) {
         return nullptr;
     }
     return &dataArray[index];
+}
+
+template<typename T>
+void PackedArray<T>::clear() {
+    end = 0;
+    size = 0;
 }

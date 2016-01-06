@@ -2,6 +2,7 @@
 
 #include <GL/glew.h>
 
+/*
 void RenderApiDispatch::drawIndexVertexBuffer(DrawIndexedVertexBufferCommand *cmd) {
     //VertexBufferObject *vbo = meshPool.getData(cmd->handle);
     //glBindVertexArray(vbo->vaoId);
@@ -27,3 +28,5 @@ void RenderApiDispatch::loadArrayBuffer(LoadArrayBufferCommand *cmd) {
 void RenderApiDispatch::loadIndexArrayBuffer(LoadIndexArrayBufferCommand *cmd) {
 
 }
+
+*/

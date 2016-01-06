@@ -14,7 +14,7 @@ using std::endl;
     intended lifetime.  A version of a handle held by a calling application not matching the stored handle version indicates a leak.
 
 */
-template <typename Data> // Handle should be of type Handle with index,version members
+template <typename Data> 
 class IndexedPool {
 public:
     IndexedPool(size_t size) : indices(size), dataPool(size) {}

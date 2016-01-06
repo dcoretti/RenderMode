@@ -11,4 +11,3 @@ struct Mesh {
     unsigned int indexOffset;
     unsigned int numElements;
 };
-
