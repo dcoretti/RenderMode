@@ -90,7 +90,7 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
-      <AdditionalIncludeDirectories>C:\Users\DC\Programming\Libraries\glew\glew-1.13.0\include;C:\Users\DC\Programming\Libraries\glm\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\DC\Programming\Libraries\tinyobjloader;C:\Users\DC\Programming\Libraries\glew\glew-1.13.0\include;C:\Users\DC\Programming\Libraries\glm\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -151,6 +151,7 @@
     <ClInclude Include="Types\Model.h" />
     <ClInclude Include="Types\ModelManager.h" />
     <ClInclude Include="Types\Shader.h" />
+    <ClInclude Include="Types\Texture.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

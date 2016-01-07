@@ -10,7 +10,8 @@ struct Material {
 
     float dissolve;
     int illum; // illumination model #
-    float Ns; // specular exponent
 
-    Handle shaderProgramHandle;
+    Handle diffuseTextureHandle;
+    Handle ambientTextureHandle;
+    Handle specularTextureHandle;
 };

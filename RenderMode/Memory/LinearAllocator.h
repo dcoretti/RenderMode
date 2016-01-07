@@ -4,6 +4,8 @@
 * Linear allocator with no reuse for individual objects.
 * ALL instances created using the placement syntax of this operator need to be manually destructed.
 * delete blah where blah was allocated using the placement synax is undefined
+*
+*   TODO allow construction using a pointer to memory to allow allocator to be given memory when in use
 */
 class LinearAllocator {
 public:
@@ -27,5 +29,6 @@ void * operator new(size_t size, LinearAllocator & allocator);
 
 // we also need our own version of operator delete because any failed new from above needs to have a corresponding delete
 void operator delete(void * ptr, LinearAllocator& allocator);
+
 
 // TODO [] versions of new/delete

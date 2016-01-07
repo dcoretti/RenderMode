@@ -12,6 +12,6 @@ struct Model {
     // Model | Mesh0 | ... | Meshn
     int numMeshes; 
 
-
+    std::string name;
     // TODO - what can be used to referene the fact that the assets are loaded and ready to be processed?  Is that necessary?
 };

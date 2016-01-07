@@ -77,5 +77,8 @@
     <ClInclude Include="Types\ModelManager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Types\Texture.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
