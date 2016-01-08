@@ -11,6 +11,8 @@
 #include "GPU/GeometryTypes.h"
 
 #include <glm/glm.hpp>
+#include <glm/gtx/hash.hpp>
+
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -99,35 +101,17 @@ struct IndexedCoord {
     }
 };
 
-
-// General hash details
 namespace std {
-    template<>
-    struct hash<glm::vec3> {
-        size_t operator()(glm::vec3 const& v) const {
-            size_t const h1(std::hash<float>()(v.x));
-            size_t const h2(std::hash<float>()(v.y));
-            size_t const h3(std::hash<float>()(v.z));
-            return h1 ^ (h2 << 1) ^ (h3 << 2);
-        }
-    };
-
-    template<>
-    struct hash<glm::vec2> {
-        size_t operator()(glm::vec2 const& t) const {
-            size_t const h1(std::hash<float>()(t[0]));
-            size_t const h2(std::hash<float>()(t[1]));
-            return h1 ^ (h2 << 1);
-        }
-    };
-
     template<>
     struct hash<IndexedCoord> {
         size_t operator()(IndexedCoord const& i) const {
-            size_t const h1(std::hash<glm::vec3>()(i.vertex));
-            size_t const h2(std::hash<glm::vec2>()(i.texCoord));
-            size_t const h3(std::hash<glm::vec3>()(i.vertex));
-            return h1 ^ (h2 << 1) ^ (h3 << 2);
+            hash<glm::vec3> h;
+            hash<glm::vec2> h2;
+            size_t seed = 0;
+            glm::detail::hash_combine(seed, h(i.vertex));
+            glm::detail::hash_combine(seed, h(i.normal));
+            glm::detail::hash_combine(seed, h2(i.texCoord));
+            return seed;
         }
     };
 }
