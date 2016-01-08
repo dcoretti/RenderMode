@@ -6,7 +6,8 @@
 #include "Model.h"
 #include "Mesh.h"
 #include "Material.h"
-#include "Texture.h"
+
+#include "GPU/GeometryTypes.h"
 
 #include <glm/glm.hpp>
 #include <string>
@@ -57,7 +58,7 @@ private:
     // Render engine data to be referenced by handles
     IndexedPool<Material> *materialPool;
     IndexedPool<Mesh> *meshPool;
-    IndexedPool<Texture> *texturePool;
+    IndexedPool<GPU::Texture> *texturePool;
 
 
     // Asset level data to be referenced outside the rendering engine.

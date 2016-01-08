@@ -1,7 +1,7 @@
 #include "Command.h"
 
-void dispatchDrawIndexedVertexBuffer(const void * data, const RenderApiDispatch & dispatch) {
-    const DrawIndexedVertexBufferCommand * cmdData = static_cast<const DrawIndexedVertexBufferCommand *>(data);
+void dispatchDrawVertexBuffer(const void * data, const RenderApiDispatch & dispatch) {
+    const DrawIndexedBufferCommand * cmdData = static_cast<const DrawIndexedBufferCommand *>(data);
     //dispatch.drawVertexBuffer(cmdData);
 }
 
@@ -12,13 +12,4 @@ void dispatchSetShaderProgram(const void * data, const RenderApiDispatch & dispa
 
 void dispatchLoadArrayBuffer(const void * data, const RenderApiDispatch & dispatch) {
     const LoadArrayBufferCommand  *cmdData = static_cast<const LoadArrayBufferCommand *>(data);
-}
-
-void dispatchLoadIndexArrayBuffer(const void * data, const RenderApiDispatch & dispatch) {
-    const LoadIndexArrayBufferCommand  *cmdData = static_cast<const LoadIndexArrayBufferCommand *>(data);
-}
-
-
-void dispatchLoadTexture(const void *data, const RenderApiDispatch & dispatch) {
-    const LoadTextureCommand *cmdData = static_cast<const LoadTextureCommand *>(data);
 }

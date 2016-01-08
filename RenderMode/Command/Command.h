@@ -35,16 +35,11 @@ struct CommandData {
 /////////////////////////////////////
 // commands
 
-void dispatchDrawIndexedVertexBuffer(const void * data, const RenderApiDispatch & dispatch);
-struct DrawIndexedVertexBufferCommand : public CommandData <DrawIndexedVertexBufferCommand> {
-    int numVertices;
-    int first;
-
-    Handle vertexBufferHandle;
-    Handle indexBufferHandle;
+void dispatchDrawVertexBuffer(const void * data, const RenderApiDispatch & dispatch);
+struct DrawIndexedBufferCommand : public CommandData <DrawIndexedBufferCommand> {
 
 };
-const Command::DispatchCommand CommandData<DrawIndexedVertexBufferCommand>::dispatchFn = &dispatchDrawIndexedVertexBuffer;
+const Command::DispatchCommand CommandData<DrawIndexedBufferCommand>::dispatchFn = &dispatchDrawVertexBuffer;
 
 
 /*
@@ -52,7 +47,18 @@ const Command::DispatchCommand CommandData<DrawIndexedVertexBufferCommand>::disp
 */
 void dispatchSetShaderProgram(const void * data, const RenderApiDispatch & dispatch);
 struct SetShaderProgramCommand : public CommandData <SetShaderProgramCommand> {
-    unsigned int programId;
+    Handle shaderProgramHandle;
+
+    // For shader loading:
+    // TODO: how to map attribute layout to attrib array when drawing vertex,normal, etc.
+    // For GL this is     glEnableVertexAttribArray(INDEX);
+    // in the shader the layout specifies that via layout (location = 0) in vec4 position;
+    // Maybe use glGetAttribLocation to find layout of named attributes expected by the engine to automatically bind those
+    // and move the attribute to an enum on the draw command to specify what type of data is being pointed at (vertex, normal, etc)
+    // and figure out the glEnableVertexAttribArray from there.
+
+    // or on load of shader, specify locations via glBindAttribLocation via common naming convention in the glsl
+    // see: http://stackoverflow.com/questions/4635913/explicit-vs-automatic-attribute-location-binding-for-opengl-shaders
 };
 const Command::DispatchCommand CommandData<SetShaderProgramCommand>::dispatchFn = &dispatchSetShaderProgram;
 
@@ -61,31 +67,10 @@ const Command::DispatchCommand CommandData<SetShaderProgramCommand>::dispatchFn 
 void dispatchLoadArrayBuffer(const void * data, const RenderApiDispatch & dispatch);
 struct LoadArrayBufferCommand : public CommandData<LoadArrayBufferCommand> {
     void * systemBuffer;  // Data stored in system memory to be loaded (move to handle once impl uses that in ModelManager)
+    unsigned int systemBufferSize;
+    unsigned int elementSize;
 
-    Handle loadedBufferHandle;  // resulting data will be placed in this location
-    unsigned int vertexCount;
-    unsigned int vertexComponents;
-    unsigned int stride;
-
+    // resulting GPU id will be placed in this location by command executor. Command creator must preallocate this in a pool
+    Handle geometryBuffer;  
 };
 const Command::DispatchCommand CommandData<LoadArrayBufferCommand>::dispatchFn = &dispatchLoadArrayBuffer;
-
-
-// Load constant index buffer into the gpu (GL_ELEMENT_ARRAY_BUFFER for GL)
-void dispatchLoadIndexArrayBuffer(const void * data, const RenderApiDispatch & dispatch);
-struct LoadIndexArrayBufferCommand : public CommandData<LoadIndexArrayBufferCommand> {
-    Handle bufferHandle; // handle to data in local memory pool
-    Handle loadedBufferHandle;  // resulting data will be placed in this location including the id
-
-    unsigned int indexCount;
-    unsigned int offset;
-};
-const Command::DispatchCommand CommandData<LoadIndexArrayBufferCommand>::dispatchFn = &dispatchLoadIndexArrayBuffer;
-
-
-void dispatchLoadTexture(const void * data, const RenderApiDispatch &dispatch);
-struct LoadTextureCommand : public CommandData<LoadTextureCommand> {
-    void * textureData;
-    unsigned int size;
-};
-const Command::DispatchCommand CommandData<LoadTextureCommand>::dispatchFn = &dispatchLoadTexture;

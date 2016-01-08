@@ -128,9 +128,9 @@ void ModelManager::populateMaterial(Material *material, ObjMaterial &objMaterial
     material->illum = objMaterial.illum;
 
     
-    material->ambientTextureHandle = loadTexture(objMaterial.map_ka).textureHandle;
-    material->diffuseTextureHandle = loadTexture(objMaterial.map_kd).textureHandle;
-    material->specularTextureHandle = loadTexture(objMaterial.map_ks).textureHandle;
+    material->ambientTexture = loadTexture(objMaterial.map_ka).textureHandle;
+    material->diffuseTexture = loadTexture(objMaterial.map_kd).textureHandle;
+    material->specularTexture = loadTexture(objMaterial.map_ks).textureHandle;
 }
 
 
@@ -205,7 +205,7 @@ void ModelManager::convertObjToInternal(
                 }
             }
             mesh->numElements = curIndex;
-            mesh->materialHandle = materialHandles[groupEntry.second.materialStates[curMaterial].materialName];
+            mesh->material = materialHandles[groupEntry.second.materialStates[curMaterial].materialName];
             curMaterial++;
         }
     }

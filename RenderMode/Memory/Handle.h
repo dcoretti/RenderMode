@@ -20,5 +20,7 @@ struct Handle {
     unsigned short version{ 0 };
 
     // Note: should only be called from a pool
-    void resetVersion() { version = 0; }
+    void resetVersion() { 
+        version = 0; 
+    }
 };

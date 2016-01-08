@@ -13,11 +13,13 @@ namespace GPU {
 
     /*
         Layout of memory in a given buffer used for vertices, normals, etc.
+        general components used in glAttributPointer
     */
     struct GeometryBufferLayout {
         size_t componentSize;   // vec3, etc.
-        unsigned int numComponents; // x,y,z
+        unsigned int numComponents; // x,y,z = 3.  size input to glVertexAttribPointer
         unsigned int stride;
+        // type?
     };
 
     struct Texture {
