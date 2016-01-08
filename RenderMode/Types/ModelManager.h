@@ -27,6 +27,7 @@ using std::string;
     4. clear temp mesh data pool data (texture and mesh data)
     5. hold render metadata (GPU ids for component array buffers) in separate pool
 
+    
 */
 class ModelManager {
 public:
@@ -54,9 +55,10 @@ private:
     void ModelManager::populateMaterialTexture(Material * mat, const std::string textureName, Handle * handle);
 
     // Render engine data to be referenced by handles
-    IndexedPool<Material>* materialPool;
+    IndexedPool<Material> *materialPool;
     IndexedPool<Mesh> *meshPool;
     IndexedPool<Texture> *texturePool;
+
 
     // Asset level data to be referenced outside the rendering engine.
     PackedArray<Model> *modelPool;  // All active models in a given context
@@ -82,6 +84,7 @@ struct IndexedCoord {
         return vertex == other.vertex && texCoord == other.texCoord && normal == other.normal;
     }
 };
+
 
 // General hash details
 namespace std {

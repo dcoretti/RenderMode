@@ -105,6 +105,7 @@ bool ObjLoader::parseElement(const string &token, istringstream &line, int lineN
         return true;
     }
 
+    return false;
 }
 
 bool ObjLoader::parseVertexData(const string &token, istringstream &line, int lineNum) {

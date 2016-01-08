@@ -11,7 +11,8 @@
     Data used to organize render data (Models own a set of references to mesh pieces which are owned by the rendering system) 
     should NOT use Handle.
 
-    TODO - add some sort of type or other safety to prevent handles from one pool being used on another accidentally
+    TODO - add some sort of type or other safety to prevent handles from one pool being used on another accidentally.
+    Right now that is owned by the IndexedPool, which returns only one type of data no matter the handle.
 */
 struct Handle {
     // TODO use variable bit size of index/version depending on type?

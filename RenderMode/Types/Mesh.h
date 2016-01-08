@@ -7,7 +7,7 @@
     split by material
 */
 struct Mesh {
-    Handle materialHandle;
-    unsigned int indexOffset;
+    Handle material;
+    unsigned int indexOffset;   // index of first vertex in buffer for this mesh.
     unsigned int numElements;
 };

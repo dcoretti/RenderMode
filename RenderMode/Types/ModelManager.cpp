@@ -171,12 +171,10 @@ void ModelManager::convertObjToInternal(
             add v/t/n actual values behind v/t/n index to deduplicated vertices,texCoords,normals  at position i
             add new IndexedCoord->i to seenVtnCombinations
             add i to new face list for mesh
-
         else
             add seenVtnCombinations[v/t/n] to face list for mesh
 
-
-        NOTE each f v/t/n indexes into vertices texCoords, normals separately.
+        NOTE each f v/t/n indexes into vertices texCoords, normals separately.  Deduplication by v/t/n tuple necessary
     */
 
     unsigned int curCoordIndex = 0;  // also total deduplicated v/t/n at the end of processing
@@ -202,7 +200,6 @@ void ModelManager::convertObjToInternal(
                     indices[curIndex] = curIndex;
                     curIndex++;
                     curCoordIndex++;
-
                 } else {
                     indices[curIndex++] = seenVtnCombinations[indexedCoord];
                 }

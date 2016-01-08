@@ -104,7 +104,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>C:\Users\DC\Programming\Libraries\glew\glew-1.13.0\include;C:\Users\DC\Programming\Libraries\glfw\glfw-3.1.2.bin.WIN64\include;C:\Users\DC\Programming\Libraries\tinyobjloader;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\DC\Programming\Libraries\glew\glew-1.13.0\include;C:\Users\DC\Programming\Libraries\glfw\glfw-3.1.2.bin.WIN64\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>

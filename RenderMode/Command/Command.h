@@ -37,10 +37,12 @@ struct CommandData {
 
 void dispatchDrawIndexedVertexBuffer(const void * data, const RenderApiDispatch & dispatch);
 struct DrawIndexedVertexBufferCommand : public CommandData <DrawIndexedVertexBufferCommand> {
-    //unsigned int vaoId;
     int numVertices;
     int first;
-    //VertexBufferHandle handle;
+
+    Handle vertexBufferHandle;
+    Handle indexBufferHandle;
+
 };
 const Command::DispatchCommand CommandData<DrawIndexedVertexBufferCommand>::dispatchFn = &dispatchDrawIndexedVertexBuffer;
 
@@ -81,3 +83,9 @@ struct LoadIndexArrayBufferCommand : public CommandData<LoadIndexArrayBufferComm
 const Command::DispatchCommand CommandData<LoadIndexArrayBufferCommand>::dispatchFn = &dispatchLoadIndexArrayBuffer;
 
 
+void dispatchLoadTexture(const void * data, const RenderApiDispatch &dispatch);
+struct LoadTextureCommand : public CommandData<LoadTextureCommand> {
+    void * textureData;
+    unsigned int size;
+};
+const Command::DispatchCommand CommandData<LoadTextureCommand>::dispatchFn = &dispatchLoadTexture;

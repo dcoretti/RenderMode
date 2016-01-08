@@ -33,6 +33,9 @@
     <ClCompile Include="Types\ModelManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Util\ObjLoader.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Command\Command.h">
@@ -68,16 +71,16 @@
     <ClInclude Include="Types\Model.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Types\Shader.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Render\RenderQueue.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Types\ModelManager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Types\Texture.h">
+    <ClInclude Include="Util\ObjLoader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Types\GPU\GeometryTypes.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

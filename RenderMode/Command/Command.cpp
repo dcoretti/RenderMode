@@ -17,3 +17,8 @@ void dispatchLoadArrayBuffer(const void * data, const RenderApiDispatch & dispat
 void dispatchLoadIndexArrayBuffer(const void * data, const RenderApiDispatch & dispatch) {
     const LoadIndexArrayBufferCommand  *cmdData = static_cast<const LoadIndexArrayBufferCommand *>(data);
 }
+
+
+void dispatchLoadTexture(const void *data, const RenderApiDispatch & dispatch) {
+    const LoadTextureCommand *cmdData = static_cast<const LoadTextureCommand *>(data);
+}
