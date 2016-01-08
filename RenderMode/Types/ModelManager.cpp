@@ -12,80 +12,6 @@ void  ModelManager::clearTransientPools() {
     meshDataPool->clear();
     textureDataPool->clear();
 }
-/*
-Model * ModelManager::loadModel(std::string fname) {
-    // TODO move this to the pool completely.
-    std::vector<tinyobj::shape_t> shapes;
-    std::vector<tinyobj::material_t> materials;
-    std::string err;
-    bool success = tinyobj::LoadObj(shapes, materials, err, fname.c_str());
-
-    if (!err.empty() || !success) {
-        std::cerr << err << std::endl;
-        return nullptr;
-    }
-
-    Handle * materialHandles = new Handle[materials.size()];
-
-
-    // Copy shapes to pool. TODO use custom obj loader to use memory pool directly.
-    for (int i = 0; i < materials.size(); i++) {
-        materialHandles[i] = materialPool->createObject();
-        Material * mat = materialPool->get(materialHandles[i]);
-
-        populateMaterial(mat, materials[i]);
-    }
-
-    // Convert shapes to models
-    for (int i = 0; i < shapes.size(); i++) {
-    }
-    
-
-    // Generate commands to submit to the render engine
-}
-
-ModelManager::TextureInfo ModelManager::loadTexture(const std::string &textureName) {
-    if (texInfoByName.find(textureName) != texInfoByName.end()) {
-        return texInfoByName[textureName];
-    }
-
-    // TODO: Do actual file loading into textureDataPool
-    size_t textureSize = 1;
-    void * texData = textureDataPool->alloc(textureSize);
-
-    TextureInfo texInfo;
-    texInfo.textureData = texData;
-    texInfo.textureHandle = texturePool->createObject();
-
-    texInfoByName[textureName] = texInfo;
-
-
-    return texInfo; // Handle to texture to be populated after load
-}
-
-void ModelManager::populateMaterialTexture(Material * mat, const std::string textureName, Handle * handle) {
-    TextureInfo texture;
-    if (!textureName.empty()) {
-        texture = loadTexture(textureName);
-        *handle = texture.textureHandle;
-    }
-}
-
-void ModelManager::populateMaterial(Material * mat, const tinyobj::material_t &objMat) {
-    mat->ambient = glm::vec3(objMat.ambient[0], objMat.ambient[1], objMat.ambient[2]);
-    mat->diffuse = glm::vec3(objMat.diffuse[0], objMat.diffuse[1], objMat.diffuse[2]);
-    mat->specular = glm::vec3(objMat.specular[0], objMat.specular[1], objMat.specular[2]);
-
-    mat->dissolve = objMat.dissolve;
-    mat->illum = objMat.illum;
-
-    populateMaterialTexture(mat, objMat.diffuse_texname, &mat->diffuseTextureHandle);
-    populateMaterialTexture(mat, objMat.specular_texname, &mat->specularTextureHandle);
-    populateMaterialTexture(mat, objMat.alpha_texname, &mat->ambientTextureHandle);
-}
-
-*/
-
 
 ModelManager::TextureInfo ModelManager::loadTexture(const std::string &textureName) {
     if (texInfoByName.find(textureName) != texInfoByName.end()) {
@@ -106,8 +32,6 @@ ModelManager::TextureInfo ModelManager::loadTexture(const std::string &textureNa
     return texInfo; // Handle to texture to be populated after load
 }
 
-
-
 /*
 Model
     vnti  <- single index buffer.
@@ -116,17 +40,12 @@ Model
         start of indices        <- note expectation of joined index buffer
         number of elements
 */
-
-// TODO
-
 void ModelManager::populateMaterial(Material *material, ObjMaterial &objMaterial) {
-
     material->ambient = objMaterial.ka;
     material->diffuse = objMaterial.kd;
     material->specular = objMaterial.ks;
     material->dissolve = objMaterial.dissolve;
     material->illum = objMaterial.illum;
-
     
     material->ambientTexture = loadTexture(objMaterial.map_ka).textureHandle;
     material->diffuseTexture = loadTexture(objMaterial.map_kd).textureHandle;
@@ -134,12 +53,11 @@ void ModelManager::populateMaterial(Material *material, ObjMaterial &objMaterial
 }
 
 
-void ModelManager::convertObjToInternal(
-    const vector<glm::vec3>& objVertices, 
-    const vector<glm::vec3>& objTexCoords,
-    const vector<glm::vec3>& objNormals,
-    const unordered_map<string, Group>& groups,
-    const unordered_map<string, ObjMaterial>& objMaterials) {
+void ModelManager::convertObjToInternal(const vector<glm::vec3>& objVertices,
+                                        const vector<glm::vec3>& objTexCoords,
+                                        const vector<glm::vec3>& objNormals,
+                                        const unordered_map<string, Group>& groups,
+                                        const unordered_map<string, ObjMaterial>& objMaterials) {
 
     map<string, Handle> materialHandles;
 
@@ -209,4 +127,36 @@ void ModelManager::convertObjToInternal(
             curMaterial++;
         }
     }
+}
+
+
+void ModelManager::copyTransientModelDataToLoadCommand(LoadArrayBufferCommand * cmd, 
+                                                       const TransientModelDataInfo &systemModelInfo, 
+                                                       Handle geometryBuffer, 
+                                                       bool isIndexArray) {
+
+    cmd->elementSize = systemModelInfo.elementSize;
+    cmd->geometryBuffer = geometryBuffer;
+    cmd->systemBuffer = systemModelInfo.geometryData;
+    cmd->systemBufferSize = systemModelInfo.elementSize * systemModelInfo.elements;
+    cmd->isIndexArray = isIndexArray;
+}
+
+void ModelManager::submitModelLoad(CommandBucket &cmdBucket,
+                                   const  Model& model, 
+                                   const TransientModelDataInfo &vertexInfo, 
+                                   const TransientModelDataInfo &normalInfo, 
+                                   const TransientModelDataInfo &texInfo,
+                                   const TransientModelDataInfo &indexInfo) {
+    LoadArrayBufferCommand * loadVertexCmd = cmdBucket.createCommand<LoadArrayBufferCommand>(CommandKey(), 0);
+    LoadArrayBufferCommand * loadNormalsCmd = cmdBucket.createCommand<LoadArrayBufferCommand>(CommandKey(), 0);
+    LoadArrayBufferCommand * loadTexCoordsCmd = cmdBucket.createCommand<LoadArrayBufferCommand>(CommandKey(), 0);
+    LoadArrayBufferCommand * loadIndicesCmd = cmdBucket.createCommand<LoadArrayBufferCommand>(CommandKey(), 0);
+
+    copyTransientModelDataToLoadCommand(loadVertexCmd, vertexInfo, model.vertexBuffer, false);
+    copyTransientModelDataToLoadCommand(loadNormalsCmd, vertexInfo, model.normal, false);
+    copyTransientModelDataToLoadCommand(loadTexCoordsCmd, vertexInfo, model.texCoords, false);
+    copyTransientModelDataToLoadCommand(loadIndicesCmd, vertexInfo, model.vertexBuffer, true);
+
+    // TODO submit to render engine
 }

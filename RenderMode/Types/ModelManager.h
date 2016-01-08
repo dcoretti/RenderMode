@@ -2,6 +2,7 @@
 #include "../Memory/IndexedPool.h"
 #include "../Memory/LinearAllocator.h"
 #include "../Memory/PackedArray.h"
+#include "../Command/CommandBucket.h"
 
 #include "Model.h"
 #include "Mesh.h"
@@ -42,18 +43,32 @@ private:
         void * textureData; // system data prior to loading to GPU
     };
 
-    void ModelManager::convertObjToInternal(
-        const vector<glm::vec3>& vertices,
-        const vector<glm::vec3>& texCoords,
-        const vector<glm::vec3>& normals,
-        const unordered_map<string, Group>& groups,
-        const unordered_map<string, ObjMaterial>& objMaterials);
+    struct TransientModelDataInfo {
+        unsigned int elements;
+        unsigned int elementSize;
+        void * geometryData;    // size elements*elementSize
+    };
+
+    void ModelManager::convertObjToInternal(const vector<glm::vec3>& vertices,
+                                            const vector<glm::vec3>& texCoords,
+                                            const vector<glm::vec3>& normals,
+                                            const unordered_map<string, Group>& groups,
+                                            const unordered_map<string, ObjMaterial>& objMaterials);
 
     void populateMaterial(Material *material, ObjMaterial &objMaterial);
     TextureInfo loadTexture(const std::string &textureName);
 
-   // void populateMaterial(Material * mat, const tinyobj::material_t &objMat);
-    void ModelManager::populateMaterialTexture(Material * mat, const std::string textureName, Handle * handle);
+
+    void submitModelLoad(CommandBucket &cmdBucket,
+                         const  Model& model,
+                         const TransientModelDataInfo &vertexInfo,
+                         const TransientModelDataInfo &normalInfo,
+                         const TransientModelDataInfo &texInfo,
+                         const TransientModelDataInfo &indexInfo);
+    void copyTransientModelDataToLoadCommand(LoadArrayBufferCommand * cmd, 
+                                             const TransientModelDataInfo &systemModelInfo, 
+                                             Handle geometryBuffer, 
+                                             bool isIndexArray);
 
     // Render engine data to be referenced by handles
     IndexedPool<Material> *materialPool;
@@ -65,13 +80,11 @@ private:
     PackedArray<Model> *modelPool;  // All active models in a given context
 
     // Transient data pools priort to laod into GPU
-    // TODO have pool free memory entirely
     LinearAllocator *meshDataPool;  // temporary pool for holding loaded resources in system ram until offloaded to gpu
     LinearAllocator *textureDataPool;
 
     unordered_map<std::string, TextureInfo> texInfoByName;
 };
-
 
 
 struct IndexedCoord {

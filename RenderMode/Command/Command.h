@@ -70,6 +70,7 @@ struct LoadArrayBufferCommand : public CommandData<LoadArrayBufferCommand> {
     unsigned int systemBufferSize;
     unsigned int elementSize;
 
+    bool isIndexArray;  // TODO maybe move this to a type if there is more than GL_ELEMENT_ARRAY_BUFFER, GL_ARRAY_BUFFER used
     // resulting GPU id will be placed in this location by command executor. Command creator must preallocate this in a pool
     Handle geometryBuffer;  
 };

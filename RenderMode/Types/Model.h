@@ -4,7 +4,7 @@
 #include "Mesh.h"
 struct Model {
     Handle bufferLayout;
-    Handle vertexBuffere;
+    Handle vertexBuffer;
     Handle normal;
     Handle texCoords;
     Handle indices;
