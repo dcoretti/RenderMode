@@ -2,39 +2,47 @@
 
 
 
-CommandBucket::CommandBucket(LinearAllocator *commandPool, PackedArray<CommandKey> *keyPool) :
-    commandPool(commandPool), 
-    keyPool(keyPool) {
+CommandBucket::CommandBucket(LinearAllocator *commandPool, size_t maxCommands) : commandPool(commandPool) {
+    keys = new CommandKey[maxCommands];
+    commandHandles = new Handle[maxCommands];
+}
 
+CommandBucket::~CommandBucket() {
+    delete[] keys;
+    delete[] commandHandles;
 }
 
 void CommandBucket::clear() {
     commandPool->clear();
-    keyPool->clear();
     count = 0;
 }
 
+Command* CommandBucket::getCommand(Handle commandHandle) {
+    return static_cast<Command*>(commandIndex->get(commandHandle));
+}
 
-template <typename CommandDataType> CommandDataType* CommandBucket::createCommand(CommandKey key, size_t additionalMemory) {
+template <typename CommandDataType> CommandDataType* CommandBucket::getCommandData(Handle handle) {
+    Command * cmd = static_cast<Command*>(commandIndex->get(handle));
+    if (cmd == nullptr) {
+        return nullptr;
+    }
+    return static_cast<CommandDataType *>(cmd + 1);
+}
+
+
+template <typename CommandDataType> Handle CommandBucket::createCommand(CommandKey key) {
     // Command data expected layout
     // | Command c| c data  | Command c2 | c2 data        |
     // command dispatch fn is running on &c + sizeof(Command) 
-
     Command * cmd = new (commandPool)Command;
-    if (additionalMemory > 0) {
-        cmd->extraCmdData = (char *)commandPool->alloc(additionalMemory)
-    }
-
-    // Maybe using a pointer to the data in the command would be better?
-    // This might lend to better support for threading given that individual allocations could be atomic.
-    // right now both have to occur in a contiguous block meaning that either this pool is thread specific
-    // or we need a mutex around these two allocations.
     CommandDataType *cmdData = new (commandPool)CommandDataType;
     cmd->dispatch = CommandData<CommandDataType>::dispatchFn;
+    Handle commandHandle = commandIndex->createHandle((void *)cmd);
 
     // Store data in bucket
     keys[count] = key;
-    commands[count] = cmd;
+    commandHandles[count] = commandHandle;
     count++;
-    return cmdData;
+
+    return commandHandle;
 }

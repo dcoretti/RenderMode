@@ -142,21 +142,30 @@ void ModelManager::copyTransientModelDataToLoadCommand(LoadArrayBufferCommand * 
     cmd->isIndexArray = isIndexArray;
 }
 
-void ModelManager::submitModelLoad(CommandBucket &cmdBucket,
+void ModelManager::submitModelLoad(RenderQueue &renderQueue,
+                                   CommandBucket &cmdBucket,
                                    const  Model& model, 
                                    const TransientModelDataInfo &vertexInfo, 
                                    const TransientModelDataInfo &normalInfo, 
                                    const TransientModelDataInfo &texInfo,
                                    const TransientModelDataInfo &indexInfo) {
-    LoadArrayBufferCommand * loadVertexCmd = cmdBucket.createCommand<LoadArrayBufferCommand>(CommandKey(), 0);
-    LoadArrayBufferCommand * loadNormalsCmd = cmdBucket.createCommand<LoadArrayBufferCommand>(CommandKey(), 0);
-    LoadArrayBufferCommand * loadTexCoordsCmd = cmdBucket.createCommand<LoadArrayBufferCommand>(CommandKey(), 0);
-    LoadArrayBufferCommand * loadIndicesCmd = cmdBucket.createCommand<LoadArrayBufferCommand>(CommandKey(), 0);
+    Handle loadVertexCmdHandle = cmdBucket.createCommand<LoadArrayBufferCommand>(CommandKey());
+    Handle loadNormalsCmdHandle = cmdBucket.createCommand<LoadArrayBufferCommand>(CommandKey());
+    Handle loadTexCoordsCmdHandle = cmdBucket.createCommand<LoadArrayBufferCommand>(CommandKey());
+    Handle loadIndicesCmdHandle = cmdBucket.createCommand<LoadArrayBufferCommand>(CommandKey());
+
+    LoadArrayBufferCommand * loadVertexCmd = cmdBucket.getCommandData<LoadArrayBufferCommand>(loadVertexCmdHandle);
+    LoadArrayBufferCommand * loadNormalsCmd = cmdBucket.getCommandData<LoadArrayBufferCommand>(loadNormalsCmdHandle);
+    LoadArrayBufferCommand * loadTexCoordsCmd = cmdBucket.getCommandData<LoadArrayBufferCommand>(loadTexCoordsCmdHandle);
+    LoadArrayBufferCommand * loadIndicesCmd = cmdBucket.getCommandData<LoadArrayBufferCommand>(loadIndicesCmdHandle);
 
     copyTransientModelDataToLoadCommand(loadVertexCmd, vertexInfo, model.vertexBuffer, false);
     copyTransientModelDataToLoadCommand(loadNormalsCmd, vertexInfo, model.normal, false);
     copyTransientModelDataToLoadCommand(loadTexCoordsCmd, vertexInfo, model.texCoords, false);
     copyTransientModelDataToLoadCommand(loadIndicesCmd, vertexInfo, model.vertexBuffer, true);
+}
 
-    // TODO submit to render engine
+
+Model * ModelManager::loadModel(std::string fname) {
+    return nullptr;
 }

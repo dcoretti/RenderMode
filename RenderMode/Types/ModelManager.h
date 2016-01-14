@@ -3,6 +3,7 @@
 #include "../Memory/LinearAllocator.h"
 #include "../Memory/PackedArray.h"
 #include "../Command/CommandBucket.h"
+#include "../Render/RenderQueue.h"
 
 #include "Model.h"
 #include "Mesh.h"
@@ -61,7 +62,8 @@ private:
     TextureInfo loadTexture(const std::string &textureName);
 
 
-    void submitModelLoad(CommandBucket &cmdBucket,
+    void submitModelLoad(RenderQueue &renderQueue, 
+                         CommandBucket &cmdBucket,
                          const  Model& model,
                          const TransientModelDataInfo &vertexInfo,
                          const TransientModelDataInfo &normalInfo,
