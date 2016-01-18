@@ -19,6 +19,7 @@
 #include <vector>
 
 #include "../Util/ObjLoader.h"
+#include "../Render/RenderContext.h"
 
 using std::vector;
 using std::unordered_map;
@@ -36,9 +37,7 @@ using std::string;
 */
 class ModelManager {
 public:
-    ModelManager(IndexedPool<Material>* materialPool, IndexedPool<Mesh> *meshPool, PackedArray<Model> *modelPool);
-
-    Model * loadModel(std::string fname);
+    Handle loadModel(std::string fname, RenderContext &rendercontext, CommandBucket &cmdBucket);
     void clearTransientPools();
 private:
     struct TextureInfo {
@@ -46,42 +45,29 @@ private:
         void * textureData; // system data prior to loading to GPU
     };
 
+
+    struct TransientModelDataInfo {
+        void *vertices; // assumed float*3 (glm::vec3)
+        void *normals;  // assumed float*3 (glm::vec3)
+        void *texCoords; // assumed float*2 (glm::vec2)
+        void *indices;  // assumed int
+        unsigned int elements;
+    };
+    /*
     struct TransientModelDataInfo {
         unsigned int elements;
         unsigned int elementSize;
         void * geometryData;    // size elements*elementSize
-    };
+    };*/
 
-    void ModelManager::convertObjToInternal(const vector<glm::vec3>& vertices,
-                                            const vector<glm::vec3>& texCoords,
-                                            const vector<glm::vec3>& normals,
-                                            const unordered_map<string, Group>& groups,
-                                            const unordered_map<string, ObjMaterial>& objMaterials);
+    TransientModelDataInfo ModelManager::convertObjToInternal(Model &model, RenderContext &renderContext, ModelObject &obj);
 
-    void populateMaterial(Material *material, ObjMaterial &objMaterial);
-    TextureInfo loadTexture(const std::string &textureName);
-
-
-    void submitModelLoad(RenderQueue &renderQueue, 
-                         CommandBucket &cmdBucket,
+    void populateMaterial(RenderContext & renderContext, Material *material, ObjMaterial &objMaterial);
+    TextureInfo loadTexture(RenderContext & renderContext, const std::string &textureName);
+    void submitModelLoad(CommandBucket &cmdBucket,
                          const  Model& model,
-                         const TransientModelDataInfo &vertexInfo,
-                         const TransientModelDataInfo &normalInfo,
-                         const TransientModelDataInfo &texInfo,
-                         const TransientModelDataInfo &indexInfo);
-    void copyTransientModelDataToLoadCommand(LoadArrayBufferCommand * cmd, 
-                                             const TransientModelDataInfo &systemModelInfo, 
-                                             Handle geometryBuffer, 
-                                             bool isIndexArray);
+                         const TransientModelDataInfo& transientModelData);
 
-    // Render engine data to be referenced by handles
-    IndexedPool<Material> *materialPool;
-    IndexedPool<Mesh> *meshPool;
-    IndexedPool<GPU::Texture> *texturePool;
-
-
-    // Asset level data to be referenced outside the rendering engine.
-    PackedArray<Model> *modelPool;  // All active models in a given context
 
     // Transient data pools priort to laod into GPU
     LinearAllocator *meshDataPool;  // temporary pool for holding loaded resources in system ram until offloaded to gpu
@@ -92,7 +78,7 @@ private:
 
 
 struct IndexedCoord {
-    IndexedCoord(glm::vec3 vertex, glm::vec3 texCoord, glm::vec3 normal) :vertex(vertex), texCoord(texCoord), normal(normal) {}
+    IndexedCoord(glm::vec3 vertex, glm::vec2 texCoord, glm::vec3 normal) :vertex(vertex), texCoord(texCoord), normal(normal) {}
 
     glm::vec3 vertex;
     glm::vec2 texCoord;

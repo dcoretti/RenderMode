@@ -46,3 +46,9 @@ template <typename CommandDataType> Handle CommandBucket::createCommand(CommandK
 
     return commandHandle;
 }
+
+
+void CommandBucket::submit() {
+    // sort
+    // submit to render
+}

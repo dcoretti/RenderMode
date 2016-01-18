@@ -89,5 +89,8 @@
     <ClInclude Include="Memory\PoolIndex.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Render\RenderContext.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

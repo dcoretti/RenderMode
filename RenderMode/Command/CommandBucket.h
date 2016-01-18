@@ -25,6 +25,7 @@ public:
     Command* getCommand(Handle commandHandle);
 
     void clear();
+    void submit();
 private:
     int count{ 0 };
     CommandKey* keys;

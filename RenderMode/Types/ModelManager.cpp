@@ -2,18 +2,13 @@
 #include <map>
 using std::map;
 
-ModelManager::ModelManager(IndexedPool<Material>* materialPool, IndexedPool<Mesh> *meshPool, PackedArray<Model> *modelPool) 
-    : materialPool(materialPool), meshPool(meshPool), modelPool(modelPool) {
-
-}
-
 void  ModelManager::clearTransientPools() {
     // TODO give memory for pool back. Use a global pool for transient resource loading?
     meshDataPool->clear();
     textureDataPool->clear();
 }
 
-ModelManager::TextureInfo ModelManager::loadTexture(const std::string &textureName) {
+ModelManager::TextureInfo ModelManager::loadTexture(RenderContext & renderContext, const std::string &textureName) {
     if (texInfoByName.find(textureName) != texInfoByName.end()) {
         return texInfoByName[textureName];
     }
@@ -24,7 +19,7 @@ ModelManager::TextureInfo ModelManager::loadTexture(const std::string &textureNa
 
     TextureInfo texInfo;
     texInfo.textureData = texData;
-    texInfo.textureHandle = texturePool->createObject();
+    texInfo.textureHandle = renderContext.texturePool.createObject();
 
     texInfoByName[textureName] = texInfo;
 
@@ -40,29 +35,25 @@ Model
         start of indices        <- note expectation of joined index buffer
         number of elements
 */
-void ModelManager::populateMaterial(Material *material, ObjMaterial &objMaterial) {
+void ModelManager::populateMaterial(RenderContext & renderContext, Material *material, ObjMaterial &objMaterial) {
     material->ambient = objMaterial.ka;
     material->diffuse = objMaterial.kd;
     material->specular = objMaterial.ks;
     material->dissolve = objMaterial.dissolve;
     material->illum = objMaterial.illum;
     
-    material->ambientTexture = loadTexture(objMaterial.map_ka).textureHandle;
-    material->diffuseTexture = loadTexture(objMaterial.map_kd).textureHandle;
-    material->specularTexture = loadTexture(objMaterial.map_ks).textureHandle;
+    material->ambientTexture = loadTexture(renderContext, objMaterial.map_ka).textureHandle;
+    material->diffuseTexture = loadTexture(renderContext, objMaterial.map_kd).textureHandle;
+    material->specularTexture = loadTexture(renderContext, objMaterial.map_ks).textureHandle;
 }
 
 
-void ModelManager::convertObjToInternal(const vector<glm::vec3>& objVertices,
-                                        const vector<glm::vec3>& objTexCoords,
-                                        const vector<glm::vec3>& objNormals,
-                                        const unordered_map<string, Group>& groups,
-                                        const unordered_map<string, ObjMaterial>& objMaterials) {
-
+ModelManager::TransientModelDataInfo ModelManager::convertObjToInternal(Model &model,
+                                                                        RenderContext &renderContext,
+                                                                        ModelObject &obj){
+    // TODO these should be allocated on some pool
     map<string, Handle> materialHandles;
-
-
-    size_t vSize = objVertices.size();
+    size_t vSize = obj.vertices.size();
     size_t indexCount = 0;  // find a way to get full index count TODO <---------------------------------------------------
 
 
@@ -74,14 +65,13 @@ void ModelManager::convertObjToInternal(const vector<glm::vec3>& objVertices,
     unsigned int *indices = (unsigned int *)meshDataPool->alloc(sizeof(unsigned int) * indexCount);
 
     // convert all materials
-    for (auto materialEntry : objMaterials) {
-        Handle materialHandle = materialPool->createObject();
-        Material * material = materialPool->get(materialHandle);
+    for (auto materialEntry : obj.materials) {
+        Handle materialHandle = renderContext.materialPool.createObject();
+        Material * material = renderContext.materialPool.get(materialHandle);
 
-        populateMaterial(material, materialEntry.second);
+        populateMaterial(renderContext, material, materialEntry.second);
         materialHandles[materialEntry.second.name] = materialHandle;
     }
-
 
     /*
      for each face
@@ -94,22 +84,25 @@ void ModelManager::convertObjToInternal(const vector<glm::vec3>& objVertices,
 
         NOTE each f v/t/n indexes into vertices texCoords, normals separately.  Deduplication by v/t/n tuple necessary
     */
-
     unsigned int curCoordIndex = 0;  // also total deduplicated v/t/n at the end of processing
     unsigned int curIndex = 0;       // index into indices array
     unordered_map<IndexedCoord, unsigned int> seenVtnCombinations; // Map of <V,T,N> -> index in deduplicated array
-    for (auto groupEntry : groups) {
-
+    for (auto groupEntry : obj.groups) {
+        // in this case a group is a Model.  Each set of faces is a mesh with a corresponding material
         unsigned int curMaterial = 0;
+        model.numMeshes = (int)groupEntry.second.faces.size();
+        model.meshes = new Handle[model.numMeshes];
         for (vector<int> faceVector : groupEntry.second.faces) {
-            Mesh * mesh = new (meshDataPool) Mesh;
+            model.meshes[curMaterial] = renderContext.meshPool.createObject();
+            Mesh * mesh = renderContext.meshPool.get(model.meshes[curMaterial]);
+
             mesh->indexOffset = curIndex;   // starting index for all faces (v/t/n index) on this mesh
 
             for (int i = 0; i < faceVector.size(); i += 3) {
                 // face elements are in form v/t/n with 1 as first index. 0 indicates missing element
-                IndexedCoord indexedCoord(objVertices[faceVector[i]-1], 
-                    objTexCoords[faceVector[i + 1]-1], 
-                    objNormals[faceVector[i + 2]-1]);
+                IndexedCoord indexedCoord(obj.vertices[faceVector[i]-1], 
+                    obj.texCoords[faceVector[i + 1]-1], 
+                    obj.normals[faceVector[i + 2]-1]);
 
                 if (seenVtnCombinations.find(indexedCoord) == seenVtnCombinations.end()) {
                     vertices[curCoordIndex] = indexedCoord.vertex;
@@ -127,28 +120,34 @@ void ModelManager::convertObjToInternal(const vector<glm::vec3>& objVertices,
             curMaterial++;
         }
     }
+
+    TransientModelDataInfo modelInfo;
+    modelInfo.vertices = vertices;
+    modelInfo.normals = normals;
+    modelInfo.texCoords = texCoords;
+    modelInfo.indices = indices;
+    modelInfo.elements = curCoordIndex;
+
+    return modelInfo;
 }
 
+void constructLoadCommand(LoadArrayBufferCommand *cmd, 
+    Handle geometryBuffer,
+    bool isIndexArray,
+    void * geometryData, 
+    unsigned int elementSize,
+    unsigned int arraySize) {
 
-void ModelManager::copyTransientModelDataToLoadCommand(LoadArrayBufferCommand * cmd, 
-                                                       const TransientModelDataInfo &systemModelInfo, 
-                                                       Handle geometryBuffer, 
-                                                       bool isIndexArray) {
-
-    cmd->elementSize = systemModelInfo.elementSize;
+    cmd->elementSize = elementSize;
     cmd->geometryBuffer = geometryBuffer;
-    cmd->systemBuffer = systemModelInfo.geometryData;
-    cmd->systemBufferSize = systemModelInfo.elementSize * systemModelInfo.elements;
+    cmd->systemBuffer = geometryData;
+    cmd->systemBufferSize = elementSize * arraySize;
     cmd->isIndexArray = isIndexArray;
 }
 
-void ModelManager::submitModelLoad(RenderQueue &renderQueue,
-                                   CommandBucket &cmdBucket,
+void ModelManager::submitModelLoad(CommandBucket &cmdBucket,
                                    const  Model& model, 
-                                   const TransientModelDataInfo &vertexInfo, 
-                                   const TransientModelDataInfo &normalInfo, 
-                                   const TransientModelDataInfo &texInfo,
-                                   const TransientModelDataInfo &indexInfo) {
+                                   const TransientModelDataInfo& transientModelData) {
     Handle loadVertexCmdHandle = cmdBucket.createCommand<LoadArrayBufferCommand>(CommandKey());
     Handle loadNormalsCmdHandle = cmdBucket.createCommand<LoadArrayBufferCommand>(CommandKey());
     Handle loadTexCoordsCmdHandle = cmdBucket.createCommand<LoadArrayBufferCommand>(CommandKey());
@@ -159,13 +158,28 @@ void ModelManager::submitModelLoad(RenderQueue &renderQueue,
     LoadArrayBufferCommand * loadTexCoordsCmd = cmdBucket.getCommandData<LoadArrayBufferCommand>(loadTexCoordsCmdHandle);
     LoadArrayBufferCommand * loadIndicesCmd = cmdBucket.getCommandData<LoadArrayBufferCommand>(loadIndicesCmdHandle);
 
-    copyTransientModelDataToLoadCommand(loadVertexCmd, vertexInfo, model.vertexBuffer, false);
-    copyTransientModelDataToLoadCommand(loadNormalsCmd, vertexInfo, model.normal, false);
-    copyTransientModelDataToLoadCommand(loadTexCoordsCmd, vertexInfo, model.texCoords, false);
-    copyTransientModelDataToLoadCommand(loadIndicesCmd, vertexInfo, model.vertexBuffer, true);
+    constructLoadCommand(loadVertexCmd, model.vertices, false, transientModelData.vertices, sizeof(float) * 3, transientModelData.elements);
+    constructLoadCommand(loadVertexCmd, model.normals, false, transientModelData.normals, sizeof(float) * 3, transientModelData.elements);
+    constructLoadCommand(loadVertexCmd, model.texCoords, false, transientModelData.texCoords, sizeof(float) * 2, transientModelData.elements);
+    constructLoadCommand(loadVertexCmd, model.indices, false, transientModelData.indices, sizeof(int), transientModelData.elements);
 }
 
 
-Model * ModelManager::loadModel(std::string fname) {
-    return nullptr;
+Handle ModelManager::loadModel(std::string fname, RenderContext &renderContext, CommandBucket &cmdBucket) {
+    ModelObject obj = ObjLoader::load(fname);
+
+    Handle modelHandle = renderContext.modelPool.createObject();
+    Model *model = renderContext.modelPool.get(modelHandle);
+    // Preallocate space for graphics API handle to GPU buffer that render engine can populate on load commands.
+    model->vertices = renderContext.geometryBufferPool.createObject();
+    model->texCoords = renderContext.geometryBufferPool.createObject();
+    model->normals = renderContext.geometryBufferPool.createObject();
+    model->indices = renderContext.geometryBufferPool.createObject();
+    model->bufferLayout = renderContext.geometryBufferLayoutPool.createObject();
+    
+    TransientModelDataInfo modelDataInfo = convertObjToInternal(*model, renderContext, obj);
+    submitModelLoad(cmdBucket, *model, modelDataInfo);
+
+    cmdBucket.submit(); // ?? when should this actually be done.
+    return modelHandle;
 }

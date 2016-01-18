@@ -148,6 +148,7 @@
     <ClInclude Include="Memory\PackedArray.h" />
     <ClInclude Include="Memory\PoolIndex.h" />
     <ClInclude Include="Memory\SparseArray.h" />
+    <ClInclude Include="Render\RenderContext.h" />
     <ClInclude Include="Render\RenderQueue.h" />
     <ClInclude Include="Types\GPU\GeometryTypes.h" />
     <ClInclude Include="Types\Material.h" />

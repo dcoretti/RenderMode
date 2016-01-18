@@ -11,14 +11,6 @@ using std::istringstream;
 
 // TODO use GLM types for vertex data...  drop these structs!!
 // how to sort?
-
-struct Object {
-    string name;	// optional and no default.
-    vector<glm::vec3> vertices;	// ordered vertices indexable from face elements (face index-1 = vertices array index)
-    vector<glm::vec3> normals;
-    vector<glm::vec2> texCoords;
-};
-
 struct ObjMaterial {
     ObjMaterial() {}
     ObjMaterial(string name, glm::vec3 ka, glm::vec3 kd, glm::vec3 ks, float dissolve) : name(name), ka(ka), kd(kd), ks(ks), dissolve(dissolve) {}
@@ -63,6 +55,16 @@ struct Group {
     vector<MaterialState> materialStates;
 };
 
+struct ModelObject {
+    string name;	// optional and no default.
+    vector<glm::vec3> vertices;	// ordered vertices indexable from face elements (face index-1 = vertices array index)
+    vector<glm::vec3> normals;
+    vector<glm::vec2> texCoords;
+
+    unordered_map<string, ObjMaterial> materials;  // materialname -> material
+    unordered_map <string, Group> groups;
+};
+
 struct State {
     vector<Group *> activeGroups;	// Active groups specified by g gname1 ... gnameN
                                     // object id
@@ -72,30 +74,21 @@ struct State {
                             // current map usemap (off possible)
 };
 
-
 class ObjLoader {
 public:
-    ObjLoader();
-    void load(std::string fname);
-
+    static ModelObject load(std::string fname);
 private:    
-    void parseGroup(istringstream &line, int lineNum);
+    static void parseGroup(ModelObject &obj, State &curState, istringstream &line, int lineNum);
 
-    bool parseElement(const string &token, istringstream &line, int lineNum);
-    bool parseVertexData(const string &token, istringstream &line, int lineNum);
+    static bool parseElement(State &curState, const string &token, istringstream &line, int lineNum);
+    static bool parseVertexData(ModelObject &obj, const string &token, istringstream &line, int lineNum);
 
-    glm::vec3 parseVertex(istringstream & line, int lineNum);
-    void parseFace(istringstream &line, int lineNum);
+    static glm::vec3 parseVertex(istringstream & line, int lineNum);
+    static void parseFace(State &curState, istringstream &line, int lineNum);
 
-    void loadMaterial(istringstream &stream, int lineNum);
-    void parseMtl(const string &fname);
-    void applyMtl(const string &materialName);
+    static void loadMaterial(ModelObject &obj, istringstream &stream, int lineNum);
+    static void parseMtl(ModelObject &obj, const string &fname);
+    static void applyMtl(ModelObject &obj, State &curState, const string &materialName);
 
-    void printStats();
-
-    State curState;
-    Object obj;
-
-    unordered_map<string, ObjMaterial> materials;  // materialname -> material
-    unordered_map <string, Group> groups;
+    static void printStats(ModelObject &obj);
 };
