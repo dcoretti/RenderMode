@@ -11,10 +11,7 @@ struct RenderContext {
     // All Vertex, normal, texCoords allocated here.  TODO type handles to allow separate pools.
     // Right now this is the only way we can get the render engine to know where to put the id it generates
     IndexedPool<GPU::GeometryBuffer> geometryBufferPool;
-
-
     IndexedPool<GPU::GeometryBufferLayout> geometryBufferLayoutPool;
-
     IndexedPool<GPU::Texture> texturePool;
 
     IndexedPool<Material> materialPool;

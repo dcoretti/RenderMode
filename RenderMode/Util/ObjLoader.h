@@ -8,9 +8,8 @@ using std::unordered_map;
 using std::vector;
 using std::string;
 using std::istringstream;
+using std::istream;
 
-// TODO use GLM types for vertex data...  drop these structs!!
-// how to sort?
 struct ObjMaterial {
     ObjMaterial() {}
     ObjMaterial(string name, glm::vec3 ka, glm::vec3 kd, glm::vec3 ks, float dissolve) : name(name), ka(ka), kd(kd), ks(ks), dissolve(dissolve) {}
@@ -22,7 +21,7 @@ struct ObjMaterial {
     int illum; // illumination model #
     float Ns; // specular exponent
 
-              // TODO map filenames as key to external storage.. load at some point
+    // TODO map filenames as key to external storage.. load at some point
     string map_ka;
     string map_kd;
     string map_ks;
@@ -76,7 +75,12 @@ struct State {
 
 class ObjLoader {
 public:
+    static const string defaultGroupName;
+    static const string defaultMaterialName;
+
     static ModelObject load(std::string fname);
+    static ModelObject load(istream &in);
+
 private:    
     static void parseGroup(ModelObject &obj, State &curState, istringstream &line, int lineNum);
 

@@ -1,32 +1,35 @@
 #include "ObjLoader.h"
 
 #include <fstream>
+#include <sstream>
 #include <iostream>
 #include <algorithm>
 #include <iterator>
 
+using std::stringstream;
 using std::ifstream;
 using std::getline;
 using std::cout;
 using std::endl;
 using std::iterator;
 
+const string ObjLoader::defaultGroupName = "default";
+const string ObjLoader::defaultMaterialName = "Default";
 
 void initState(State &state, ModelObject &obj) {
     glm::vec3 w;
     w.x = 1.0f;
     w.y = 1.0f;
     w.z = 1.0f;
-    ObjMaterial white = obj.materials["Default"];
+    ObjMaterial white = obj.materials[ObjLoader::defaultMaterialName];
     white.ka = w;
     white.kd = w;
     white.ks = w;
     white.dissolve = 1.0f;
     state.curMaterial = &white;
 
-
-    Group &defaultGroup = obj.groups["default"];	// spec default group name
-    defaultGroup.groupName = "default";
+    Group &defaultGroup = obj.groups[ObjLoader::defaultGroupName];	// spec default group name
+    defaultGroup.groupName = ObjLoader::defaultGroupName;
 
     state.activeGroups.push_back(&defaultGroup);
 }
@@ -39,6 +42,12 @@ ModelObject ObjLoader::load(std::string fname) {
         return ModelObject();
     }
 
+    ModelObject obj = load(in);
+    in.close();
+    return obj;
+}
+
+ModelObject ObjLoader::load(istream &in) {
     ModelObject obj;
     State curState;
     initState(curState, obj);
@@ -47,6 +56,7 @@ ModelObject ObjLoader::load(std::string fname) {
     string line;
     int lineNum = 0;
     while (getline(in, line)) {
+        cout << "line: " << line << endl;
         if (line.length() == 0) {
             continue;
         }
@@ -81,7 +91,6 @@ ModelObject ObjLoader::load(std::string fname) {
 
         lineNum++;
     }
-    in.close();
     printStats(obj);
     return obj;
 }
@@ -89,6 +98,9 @@ ModelObject ObjLoader::load(std::string fname) {
 void ObjLoader::applyMtl(ModelObject &obj, State &curState, const string &materialName) {
     if (obj.materials.find(materialName) == obj.materials.end()) {
         cout << "material with name '" << materialName << "' doesn't exist.. initializing" << endl;
+        obj.materials[materialName].name = materialName;
+    } else {
+        cout << "material " << materialName << " found. " << endl;
     }
     curState.curMaterial = &obj.materials[materialName];
     ObjMaterial * material = curState.curMaterial;
@@ -103,7 +115,6 @@ void ObjLoader::applyMtl(ModelObject &obj, State &curState, const string &materi
         g->materialStates.push_back(matState);
     }
 }
-
 
 bool ObjLoader::parseElement(State &curState, const string &token, istringstream &line, int lineNum) {
     /* Elements */
@@ -146,7 +157,6 @@ void ObjLoader::loadMaterial(ModelObject &obj, istringstream &stream, int lineNu
     parseMtl(obj, matFile);
 }
 
-
 // load/parse a MTL file
 void ObjLoader::parseMtl(ModelObject &obj, const string &fname) {
     cout << "Loading material file at '" << fname << "'" << endl;
@@ -159,6 +169,7 @@ void ObjLoader::parseMtl(ModelObject &obj, const string &fname) {
     string line;
     int lineNum = 0;
     ObjMaterial *curMaterial;
+    bool activeMtl = false;
     while (getline(in, line)) {
         if (line.length() == 0) {
             continue;
@@ -172,49 +183,59 @@ void ObjLoader::parseMtl(ModelObject &obj, const string &fname) {
         if (token == "#") {
             // comment. skip
         } else if (token == "newmtl") {
-            string materialName;
-            if (!(stream >> materialName)) {
+            string name;
+            if (!(stream >> name)) {
                 cout << "missing expected material name on line " << lineNum << endl;
                 return;
             }
-            if (obj.materials.find(materialName) != obj.materials.end()) {
-                cout << "material with name '" << materialName << "' already exists.. replacing" << endl;
+
+            if (obj.materials.find(name) != obj.materials.end()) {
+                cout << "material with name '" << name << "' already exists.. replacing" << endl;
             }
 
-            curMaterial = &obj.materials[materialName];
-            curMaterial->name = materialName;
-        } else if (token == "Ka") {
-            stream >> curMaterial->ka.x >> curMaterial->ka.y >> curMaterial->ka.z;
-        } else if (token == "Kd") {
-            stream >> curMaterial->kd.x >> curMaterial->kd.y >> curMaterial->kd.z;
-        } else if (token == "Ks") {
-            stream >> curMaterial->ks.x >> curMaterial->ks.y >> curMaterial->ks.z;
-        } else if (token == "d" || token == "Tr") {
-            stream >> curMaterial->dissolve;
-        } else if (token == "map_Ka") {
-            stream >> curMaterial->map_ka;
-        } else if (token == "map_Kd") {
-            stream >> curMaterial->map_kd;
-        } else if (token == "map_Ks") {
-            stream >> curMaterial->map_ks;
-        } else if (token == "map_d") {
-            stream >> curMaterial->map_d;
-        } else if (token == "map_bump" || token == "bump") {
-            stream >> curMaterial->map_bump;
-        } else if (token == "disp") {
-            // displacement map
-            stream >> curMaterial->map_disp;
-        } else if (token == "decal") {
-            stream >> curMaterial->map_decal;
-        } else if (token == "illum") {
-            stream >> curMaterial->illum;
-        } else if (token == "Ns") {
-            stream >> curMaterial->Ns;
+            curMaterial = &obj.materials[name];
+            curMaterial->name = name;
+            activeMtl = true;
+        } 
+        if (activeMtl) {
+            if (token == "Ka") {
+                stream >> curMaterial->ka.x >> curMaterial->ka.y >> curMaterial->ka.z;
+            } else if (token == "Kd") {
+                stream >> curMaterial->kd.x >> curMaterial->kd.y >> curMaterial->kd.z;
+            } else if (token == "Ks") {
+                stream >> curMaterial->ks.x >> curMaterial->ks.y >> curMaterial->ks.z;
+            } else if (token == "d" || token == "Tr") {
+                stream >> curMaterial->dissolve;
+            } else if (token == "map_Ka") {
+                stream >> curMaterial->map_ka;
+            } else if (token == "map_Kd") {
+                stream >> curMaterial->map_kd;
+            } else if (token == "map_Ks") {
+                stream >> curMaterial->map_ks;
+            } else if (token == "map_d") {
+                stream >> curMaterial->map_d;
+            } else if (token == "map_bump" || token == "bump") {
+                stream >> curMaterial->map_bump;
+            } else if (token == "disp") {
+                // displacement map
+                stream >> curMaterial->map_disp;
+            } else if (token == "decal") {
+                stream >> curMaterial->map_decal;
+            } else if (token == "illum") {
+                stream >> curMaterial->illum;
+            } else if (token == "Ns") {
+                stream >> curMaterial->Ns;
+            } else {
+                cout << "ERROR Invalid token for line " << lineNum << ": " << line << endl;
+                return;
+            }
         } else {
-            cout << "ERROR Invalid token for line " << lineNum << ": " << line << endl;
-            return;
+            if (!activeMtl) {
+                cout << "unexpected token.  Expected newmtl as first command at or before line " << line << endl;
+            } else {
+                cout << "ERROR Invalid token for line " << lineNum << ": " << line << endl;
+            }
         }
-
         lineNum++;
     }
     in.close();
@@ -239,31 +260,32 @@ void ObjLoader::parseFace(State &curState, istringstream &line, int lineNum) {
     vector<int> face;
     string chunk;	// One v/vn/vt component of the line
     while (line >> chunk) {
-        //grab a chunk
-        // try to split chunk into vt/vn
-        size_t loc;
-        size_t prev = 0;
+        //grab a chunk and try to split chunk into v/vn/vt
+        cout << "chunk " << chunk << endl;
         int components = 0;
-        while ((loc = chunk.find_first_of('/', prev)) != std::string::npos) {
-            if (loc > prev) {
-                face.push_back(std::stoi(string(chunk, prev, loc)));
+
+        size_t delim1 = chunk.find_first_of('/');
+        size_t delim2 = chunk.find_last_of('/');
+        if (delim1 == string::npos) {
+            if (chunk.size() > 0) {
+                face.push_back(std::stoi(chunk));
+                face.push_back(0);
+                face.push_back(0);
+            } else {
+                cout << lineNum << " ERROR: missing face elements on face tag for chunk '" << chunk << endl;
             }
-            components++;
-        }
-        // case with only vertex index
-        if (loc == prev == 0) {
-            face.push_back(std::stoi(chunk));
-            components++;
-        }
-        if (components == 0) {
-            cout << "ERROR: missing face elements on face tag line " << lineNum << endl;
-        }
-        // fill out missing components with 0s
-        for (; components < 3; components++) {
+        } else if (delim1 == delim2) {
+            // f #/#
+            face.push_back(std::stoi(chunk.substr(0, delim1)));
+            face.push_back(std::stoi(chunk.substr(delim1 + 1, chunk.size() - delim1)));
             face.push_back(0);
+        } else {
+            // f #/#/#
+            face.push_back(std::stoi(chunk.substr(0, delim1)));
+            face.push_back(std::stoi(chunk.substr(delim1 + 1, delim2 - delim1)));
+            face.push_back(std::stoi(chunk.substr(delim2 + 1, chunk.size() - delim1)));
         }
     }
-
     for (Group * group : curState.activeGroups) {
         group->faces.push_back(face);
     }
