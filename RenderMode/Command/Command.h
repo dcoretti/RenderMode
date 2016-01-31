@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../Memory/Handle.h"
+#include "../Types/GPU/GeometryTypes.h"
 #include "../Dispatch/RenderApiDispatch.h"
 
 /*
@@ -47,6 +48,9 @@ const Command::DispatchCommand CommandData<DrawIndexedBufferCommand>::dispatchFn
 */
 void dispatchSetShaderProgram(const void * data, const RenderApiDispatch & dispatch);
 struct SetShaderProgramCommand : public CommandData <SetShaderProgramCommand> {
+    SetShaderProgramCommand(Handle shaderProgramHandle) : shaderProgramHandle(shaderProgramHandle) {}
+    SetShaderProgramCommand() = default;
+
     Handle shaderProgramHandle;
 
     // For shader loading:
@@ -66,6 +70,19 @@ const Command::DispatchCommand CommandData<SetShaderProgramCommand>::dispatchFn 
 // Load constant array buffer into the GPU (such as creating a GL_ARRAY_BUFFER)
 void dispatchLoadArrayBuffer(const void * data, const RenderApiDispatch & dispatch);
 struct LoadArrayBufferCommand : public CommandData<LoadArrayBufferCommand> {
+    LoadArrayBufferCommand(Handle geometryBuffer,
+                            bool isIndexArray,
+                            void * geometryData,
+                            unsigned int elementSize,
+                            unsigned int arraySize) {
+        elementSize = elementSize;
+        geometryBuffer = geometryBuffer;
+        systemBuffer = geometryData;
+        systemBufferSize = elementSize * arraySize;
+        isIndexArray = isIndexArray;
+    }
+    LoadArrayBufferCommand() = default;
+
     void * systemBuffer;  // Data stored in system memory to be loaded (move to handle once impl uses that in ModelManager)
     unsigned int systemBufferSize;
     unsigned int elementSize;
@@ -75,3 +92,17 @@ struct LoadArrayBufferCommand : public CommandData<LoadArrayBufferCommand> {
     Handle geometryBuffer;  
 };
 const Command::DispatchCommand CommandData<LoadArrayBufferCommand>::dispatchFn = &dispatchLoadArrayBuffer;
+
+
+void dispatchCreateShader(const void *data, const RenderApiDispatch & dispatch);
+struct CreateShaderCommand : public CommandData<CreateShaderCommand> {
+    CreateShaderCommand(Handle shaderProgram, const char * shaderSourceData, GPU::ShaderType shaderType) :
+        shaderProgram(shaderProgram), shaderSourceData(shaderSourceData), shaderType(shaderType){
+    }
+    CreateShaderCommand() = default;
+
+    Handle shaderProgram;   // pre-allocated location for shader id.  Will be allocated by renderer upon creation.
+    const char * shaderSourceData;    // pooled shader source code str
+    GPU::ShaderType shaderType;
+};
+const Command::DispatchCommand CommandData<CreateShaderCommand>::dispatchFn = &dispatchCreateShader;

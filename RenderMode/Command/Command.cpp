@@ -13,3 +13,8 @@ void dispatchSetShaderProgram(const void * data, const RenderApiDispatch & dispa
 void dispatchLoadArrayBuffer(const void * data, const RenderApiDispatch & dispatch) {
     const LoadArrayBufferCommand  *cmdData = static_cast<const LoadArrayBufferCommand *>(data);
 }
+
+
+void dispatchCreateShader(const void *data, const RenderApiDispatch & dispatch) {
+    const CreateShaderCommand *cmdData = static_cast<const CreateShaderCommand *>(data);
+}

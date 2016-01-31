@@ -18,7 +18,25 @@
     <ClCompile Include="RenderModeTest.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ObjLoaderTest.cpp">
+    <ClCompile Include="Util\ObjLoaderTest.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Types\ModelManagerTest.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Command\CommandBuilderTest.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Memory\LinearAllocatorTest.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Memory\PackedArrayTest.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Memory\IndexedPoolTest.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Memory\SparseArrayTest.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

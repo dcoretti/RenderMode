@@ -131,6 +131,7 @@
   <ItemGroup>
     <ClCompile Include="Command\Command.cpp" />
     <ClCompile Include="Command\CommandBucket.cpp" />
+    <ClCompile Include="Command\CommandBuilder.cpp" />
     <ClCompile Include="Dispatch\RenderApiDispatch.cpp" />
     <ClCompile Include="Memory\LinearAllocator.cpp" />
     <ClCompile Include="Memory\PoolIndex.cpp" />
@@ -141,6 +142,7 @@
   <ItemGroup>
     <ClInclude Include="Command\Command.h" />
     <ClInclude Include="Command\CommandBucket.h" />
+    <ClInclude Include="Command\CommandBuilder.h" />
     <ClInclude Include="Dispatch\RenderApiDispatch.h" />
     <ClInclude Include="Memory\Handle.h" />
     <ClInclude Include="Memory\IndexedPool.h" />

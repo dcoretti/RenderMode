@@ -13,6 +13,8 @@ public:
     ~LinearAllocator();
 
     void * alloc(size_t size);
+    size_t maxSize();
+    size_t curSize();
     void clear();
 
 private:

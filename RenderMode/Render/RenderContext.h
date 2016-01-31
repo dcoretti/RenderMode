@@ -13,6 +13,7 @@ struct RenderContext {
     IndexedPool<GPU::GeometryBuffer> geometryBufferPool;
     IndexedPool<GPU::GeometryBufferLayout> geometryBufferLayoutPool;
     IndexedPool<GPU::Texture> texturePool;
+    IndexedPool<GPU::ShaderProgram> shaderPrograms; // overkill with overhead?
 
     IndexedPool<Material> materialPool;
     IndexedPool<Mesh> meshPool;

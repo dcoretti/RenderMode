@@ -268,6 +268,7 @@ void ObjLoader::parseFace(State &curState, istringstream &line, int lineNum) {
         size_t delim2 = chunk.find_last_of('/');
         if (delim1 == string::npos) {
             if (chunk.size() > 0) {
+                // f #
                 face.push_back(std::stoi(chunk));
                 face.push_back(0);
                 face.push_back(0);
@@ -282,8 +283,13 @@ void ObjLoader::parseFace(State &curState, istringstream &line, int lineNum) {
         } else {
             // f #/#/#
             face.push_back(std::stoi(chunk.substr(0, delim1)));
-            face.push_back(std::stoi(chunk.substr(delim1 + 1, delim2 - delim1)));
-            face.push_back(std::stoi(chunk.substr(delim2 + 1, chunk.size() - delim1)));
+            if (delim2 == delim1 + 1) {
+                // f #//#
+                face.push_back(0);
+            } else {
+                face.push_back(std::stoi(chunk.substr(delim1 + 1, delim2 - delim1)));
+            }
+            face.push_back(std::stoi(chunk.substr(delim2 + 1, chunk.size() - delim2)));
         }
     }
     for (Group * group : curState.activeGroups) {

@@ -13,6 +13,7 @@ template<typename T>
 class PackedArray {
 public:
     PackedArray(size_t size);
+    ~PackedArray() { delete[] dataArray; }
     int allocate();
     int remove(int index);
     T * get(int index);
@@ -45,10 +46,12 @@ int PackedArray<T>::allocate() {
 template<typename T>
 int PackedArray<T>::remove(int index) {
     // copy data from back into this slot
+    end--;
     if (index != end) {
         dataArray[index] = dataArray[end];
+        return end;
     }
-    return end--;
+    return -1;
 }
 
 // Get data at a given index

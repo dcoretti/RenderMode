@@ -171,3 +171,8 @@ TEST(ObjLoaderTest, multiFaceContext) {
     EXPECT_EQ(0, getDefaultGroup(obj).materialStates[0].faceIndex);
     EXPECT_EQ(2, getDefaultGroup(obj).materialStates[1].faceIndex);
 }
+
+// TODO add test for F #/#/# vs #//# vs # vs #/#/
+// will this break for 0 case?   maybe faces need to be split...
+
+// TODO test MTL file parsing.  refactor objloader to allow use without files.

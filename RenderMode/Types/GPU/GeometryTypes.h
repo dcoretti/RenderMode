@@ -30,4 +30,10 @@ namespace GPU {
     struct ShaderProgram {
         unsigned int shaderProgramId; // compiled program id for a shader program 
     };
+
+
+    enum class ShaderType {
+        Vertex,
+        Fragment
+    };
 }

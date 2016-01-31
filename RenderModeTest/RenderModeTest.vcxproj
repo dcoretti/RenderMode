@@ -151,7 +151,13 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="ObjLoaderTest.cpp" />
+    <ClCompile Include="Command\CommandBuilderTest.cpp" />
+    <ClCompile Include="Memory\IndexedPoolTest.cpp" />
+    <ClCompile Include="Memory\LinearAllocatorTest.cpp" />
+    <ClCompile Include="Memory\PackedArrayTest.cpp" />
+    <ClCompile Include="Memory\SparseArrayTest.cpp" />
+    <ClCompile Include="Types\ModelManagerTest.cpp" />
+    <ClCompile Include="Util\ObjLoaderTest.cpp" />
     <ClCompile Include="RenderModeTest.cpp" />
   </ItemGroup>
   <ItemGroup>

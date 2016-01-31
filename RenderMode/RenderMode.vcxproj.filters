@@ -39,6 +39,9 @@
     <ClCompile Include="Memory\PoolIndex.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Command\CommandBuilder.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Command\Command.h">
@@ -90,6 +93,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Render\RenderContext.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Command\CommandBuilder.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
