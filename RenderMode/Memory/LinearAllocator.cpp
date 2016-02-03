@@ -30,7 +30,7 @@ size_t LinearAllocator::maxSize() {
 }
 
 size_t LinearAllocator::curSize() {
-    return cur - start;
+    return (size_t)(cur - start);
 }
 
 

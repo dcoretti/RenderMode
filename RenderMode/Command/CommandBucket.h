@@ -13,7 +13,7 @@ struct CommandKey {
 
 class CommandBucket {
 public:
-    CommandBucket(LinearAllocator *commandPool, size_t maxCommands);
+    CommandBucket(size_t maxCommands, size_t poolSize);
     ~CommandBucket();
 
     // create a blank command of type CommandType to be filled in externally.
@@ -26,13 +26,46 @@ public:
 
     void clear();
     void submit();
+
+    size_t getPoolSize();
+    int getNumCommands();
 private:
     int count{ 0 };
     CommandKey* keys;
-    Handle *commandHandles;
+    Handle *commandHandles; // Handles for the "head" command in a command packet linked list.
 
 
     PoolIndex *commandIndex;
     LinearAllocator *commandPool;	// holds commands and command data in a packed array
 
 };
+
+
+template <typename CommandDataType> CommandDataType* CommandBucket::getCommandData(Handle handle) {
+    void * data =commandIndex->get(handle);
+    Command *cmd = static_cast<Command*>(data);
+    if (cmd == nullptr) {
+        return nullptr;
+    }
+    // Command data occurs immediately after the command.
+    void *cmdDataPtr = ((char *)data) + sizeof(Command);
+    return static_cast<CommandDataType*>(cmdDataPtr);
+}
+
+
+template <typename CommandDataType> Handle CommandBucket::createCommand(CommandKey key) {
+    // Command data expected layout
+    // | Command c| c data  | Command c2 | c2 data        |
+    // command dispatch fn is running on &c + sizeof(Command) 
+    Command * cmd = new (*commandPool)Command;
+    cmd->dispatch = CommandData<CommandDataType>::dispatchFn;
+
+    Handle commandHandle = commandIndex->createHandle((void *)cmd);
+    keys[count] = key;
+    commandHandles[count] = commandHandle;
+    count++;
+
+    CommandDataType *cmdData = new (*commandPool)CommandDataType;
+
+    return commandHandle;
+}

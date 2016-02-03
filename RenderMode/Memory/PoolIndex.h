@@ -15,12 +15,13 @@ public:
 
     void setInnerIndexValue(Handle handle, void * data);
     void * get(Handle handle);
-
+    void clear();
 private:
     struct InnerHandle {
         unsigned int version;
         void * data;
     };
 
+    int baseVersion{ 0 };
     SparseArray<InnerHandle> indices;
 };

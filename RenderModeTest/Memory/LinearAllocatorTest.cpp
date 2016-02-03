@@ -21,4 +21,13 @@ TEST(LinearAllocatorTest, testPlacement) {
     EXPECT_EQ(1, alloc.curSize());
 
     EXPECT_EQ(hi + 1, alloc.alloc(1));
+    EXPECT_EQ(hi + 2, new (alloc) char);
+}
+
+
+TEST(LinearAllocatorTest, testVaryingSize) {
+    LinearAllocator allocator(10);
+    allocator.alloc(3);
+    allocator.alloc(5);
+    EXPECT_EQ(8, allocator.curSize());
 }

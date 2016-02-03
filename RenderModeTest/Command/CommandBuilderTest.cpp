@@ -9,17 +9,14 @@
 class CommandBuilderTest : public testing::Test {
 protected:
     virtual void SetUp() {
-        cmdPool = new LinearAllocator(1024*5);
-        bucket = new CommandBucket(cmdPool, 10);
+        bucket = new CommandBucket(5, 500);
     }
 
     virtual void TearDown() {
         delete bucket;
-        delete cmdPool;
     }
 
     CommandBucket *bucket;
-    LinearAllocator *cmdPool;
 };
 
 TEST_F(CommandBuilderTest, CreateShaderProgramTest) {

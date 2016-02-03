@@ -6,9 +6,11 @@ PoolIndex::PoolIndex(size_t indexSize):indices(indexSize) {
 Handle PoolIndex::createHandle() {
     Handle handle;
     handle.index = indices.allocate();
-
     InnerHandle * index = indices.get(handle.index);
-    handle.version = index->version++;
+
+    if (index->version < baseVersion) {
+        index->version = baseVersion;
+    }
     index->version = handle.version;
     return handle;
 }
@@ -22,7 +24,7 @@ Handle PoolIndex::createHandle(void * data) {
 
 bool PoolIndex::isValid(Handle handle) {
     InnerHandle *index = indices.get(handle.index);
-    if (handle.version == index->version) {
+    if (handle.version >= baseVersion && handle.version == index->version) {
         return true;
     }
     return false;
@@ -36,4 +38,9 @@ void PoolIndex::setInnerIndexValue(Handle handle, void * data) {
 
 void * PoolIndex::get(Handle handle) {
     return isValid(handle) ? indices.get(handle.index)->data: nullptr;
+}
+
+void PoolIndex::clear() {
+    baseVersion++;
+    indices.clear();
 }

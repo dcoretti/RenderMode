@@ -155,10 +155,11 @@
     <ClCompile Include="Memory\IndexedPoolTest.cpp" />
     <ClCompile Include="Memory\LinearAllocatorTest.cpp" />
     <ClCompile Include="Memory\PackedArrayTest.cpp" />
+    <ClCompile Include="Memory\PoolIndexTest.cpp" />
     <ClCompile Include="Memory\SparseArrayTest.cpp" />
+    <ClCompile Include="Types\CommandBucketTest.cpp" />
     <ClCompile Include="Types\ModelManagerTest.cpp" />
     <ClCompile Include="Util\ObjLoaderTest.cpp" />
-    <ClCompile Include="RenderModeTest.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\RenderMode\RenderMode.vcxproj">
