@@ -18,7 +18,7 @@ CommandBucket::~CommandBucket() {
 
 void CommandBucket::clear() {
     commandPool->clear();
-    count = 0;
+    sortableCount = 0;
 }
 
 Command* CommandBucket::getCommand(Handle commandHandle) {
@@ -35,6 +35,10 @@ size_t CommandBucket::getPoolSize() {
     return commandPool->curSize();
 }
 
-int CommandBucket::getNumCommands() {
-    return count;
+int CommandBucket::getNumSortableCommands() {
+    return sortableCount;
+}
+
+int CommandBucket::getTotalCommands() {
+    return totalCount;
 }

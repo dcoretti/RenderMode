@@ -152,10 +152,11 @@
     <ClInclude Include="Memory\SparseArray.h" />
     <ClInclude Include="Render\RenderContext.h" />
     <ClInclude Include="Render\RenderQueue.h" />
+    <ClInclude Include="Types\Application\TransientModelData.h" />
     <ClInclude Include="Types\GPU\GeometryTypes.h" />
-    <ClInclude Include="Types\Material.h" />
-    <ClInclude Include="Types\Mesh.h" />
-    <ClInclude Include="Types\Model.h" />
+    <ClInclude Include="Types\Application\Material.h" />
+    <ClInclude Include="Types\Application\Mesh.h" />
+    <ClInclude Include="Types\Application\Model.h" />
     <ClInclude Include="Types\ModelManager.h" />
     <ClInclude Include="Util\ObjLoader.h" />
   </ItemGroup>

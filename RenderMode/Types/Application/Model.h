@@ -16,10 +16,6 @@ struct Model {
     Handle texCoords;
     Handle indices;
 
-    // to allow contiguous storage of related meshes, knowing only the number of meshes is necessary. 
-    // This way the model pool can allocate storage together for a given mesh
-    // Model | Mesh0 | ... | Meshn
     int numMeshes; 
-
     Handle * meshes{ nullptr };
 };

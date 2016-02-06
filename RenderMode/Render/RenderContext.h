@@ -2,7 +2,7 @@
 
 #include "../Memory/IndexedPool.h"
 #include "../Types/GPU/GeometryTypes.h"
-#include "../Types/Material.h"
+#include "../Types/Application/Material.h"
 
 // All pooled data the rendering engine has access to.
 struct RenderContext {

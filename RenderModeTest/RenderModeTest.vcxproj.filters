@@ -36,10 +36,10 @@
     <ClCompile Include="Memory\SparseArrayTest.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Types\CommandBucketTest.cpp">
+    <ClCompile Include="Memory\PoolIndexTest.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Memory\PoolIndexTest.cpp">
+    <ClCompile Include="Command\CommandBucketTest.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

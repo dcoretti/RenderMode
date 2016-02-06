@@ -5,9 +5,9 @@
 #include "../Command/CommandBucket.h"
 #include "../Render/RenderQueue.h"
 
-#include "Model.h"
-#include "Mesh.h"
-#include "Material.h"
+#include "Application/Model.h"
+#include "Application/Mesh.h"
+#include "Application/Material.h"
 
 #include "GPU/GeometryTypes.h"
 

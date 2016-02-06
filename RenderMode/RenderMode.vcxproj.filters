@@ -68,15 +68,6 @@
     <ClInclude Include="Memory\Handle.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Types\Mesh.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Types\Material.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Types\Model.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Render\RenderQueue.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -96,6 +87,18 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Command\CommandBuilder.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Types\Application\Material.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Types\Application\Mesh.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Types\Application\Model.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Types\Application\TransientModelData.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
