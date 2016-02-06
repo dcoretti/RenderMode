@@ -2,13 +2,14 @@
 
 #include "../Memory/Handle.h"
 #include "../Types/GPU/GeometryTypes.h"
-#include "../Dispatch/RenderApiDispatch.h"
+#include "../Render/RenderContext.h"
+
 
 /*
     General Linked set of commands, each with a set of 
 */
 struct Command {
-    typedef void(*DispatchCommand)(const void * data, const RenderApiDispatch & dispatch);
+    typedef void(*DispatchCommand)(const void * data, RenderContext & context);
 
     // Dispatch function ptr that knows how to decode data and send it to the API level render api
     DispatchCommand dispatch{ nullptr };
@@ -16,7 +17,6 @@ struct Command {
     Command * next{ nullptr }; // next command in a group
     char * extraCmdData;    // Extra data such as shader uniforms, etc.  
 };
-
 
 /*
  Each cmd data derives from this and specifies the loation of the dispatch fn.
@@ -27,16 +27,18 @@ struct Command {
 template <class Derived>
 struct CommandData {
     static const Command::DispatchCommand dispatchFn;
+    // TODO how to assert per subtype that dispatchFn != nullptr?
 };
-// TODO how to assert per subtype that dispatchFn != nullptr?
 
-
+struct CommandKey {
+    int tmp;
+};
 
 
 /////////////////////////////////////
 // commands
 
-void dispatchDrawVertexBuffer(const void * data, const RenderApiDispatch & dispatch);
+void dispatchDrawVertexBuffer(const void * data, RenderContext & context);
 struct DrawIndexedBufferCommand : public CommandData <DrawIndexedBufferCommand> {
 
 };
@@ -46,7 +48,7 @@ const Command::DispatchCommand CommandData<DrawIndexedBufferCommand>::dispatchFn
 /*
 * Use a shader program.  Auxilary memory should hold uniform key/values for submission.
 */
-void dispatchSetShaderProgram(const void * data, const RenderApiDispatch & dispatch);
+void dispatchSetShaderProgram(const void * data, RenderContext & context);
 struct SetShaderProgramCommand : public CommandData <SetShaderProgramCommand> {
     SetShaderProgramCommand(Handle shaderProgramHandle) : shaderProgramHandle(shaderProgramHandle) {}
     SetShaderProgramCommand() = default;
@@ -68,7 +70,7 @@ const Command::DispatchCommand CommandData<SetShaderProgramCommand>::dispatchFn 
 
 
 // Load constant array buffer into the GPU (such as creating a GL_ARRAY_BUFFER)
-void dispatchLoadArrayBuffer(const void * data, const RenderApiDispatch & dispatch);
+void dispatchLoadArrayBuffer(const void * data, RenderContext & context);
 struct LoadArrayBufferCommand : public CommandData<LoadArrayBufferCommand> {
     LoadArrayBufferCommand(Handle geometryBuffer,
                             bool isIndexArray,
@@ -94,7 +96,7 @@ struct LoadArrayBufferCommand : public CommandData<LoadArrayBufferCommand> {
 const Command::DispatchCommand CommandData<LoadArrayBufferCommand>::dispatchFn = &dispatchLoadArrayBuffer;
 
 
-void dispatchCreateShader(const void *data, const RenderApiDispatch & dispatch);
+void dispatchCreateShader(const void *data, RenderContext & context);
 struct CreateShaderCommand : public CommandData<CreateShaderCommand> {
     CreateShaderCommand(Handle shaderProgram, const char * shaderSourceData, GPU::ShaderType shaderType) :
         shaderProgram(shaderProgram), shaderSourceData(shaderSourceData), shaderType(shaderType){

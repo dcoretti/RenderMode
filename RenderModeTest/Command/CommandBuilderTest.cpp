@@ -20,15 +20,4 @@ protected:
 };
 
 TEST_F(CommandBuilderTest, CreateShaderProgramTest) {
-    CommandBuilder builder(bucket);
-
-    Handle h;
-    h.index = 123;
-    h.version = 5;
-    char * data = "hi";
-    //Handle cmdHandle = builder.buildCreateShaderCommand(h, data, GPU::ShaderType::Fragment);
-
-    //Command *cmd =  bucket->getCommand(cmdHandle);
-    //CreateShaderCommand * cmdData = bucket->getCommandData<CreateShaderCommand>(cmdHandle);
-
 }

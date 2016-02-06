@@ -9,6 +9,10 @@
 */
 
 struct TransientModelData {
+    TransientModelData(void * vertices, void *normals, void *texCoords, void *indices, unsigned int elements):
+        vertices(vertices), normals(normals), texCoords(texCoords), indices(indices), elements(elements) {}
+    TransientModelData() = default;
+
     void *vertices; 
     void *normals; 
     void *texCoords;
@@ -17,8 +21,16 @@ struct TransientModelData {
 
     unsigned int vertexElementSize{ sizeof(float) };
     unsigned int indexElementSize{ sizeof(int) };
-    unsigned int vertexComponents{ 3 };
-    unsigned int normalComponents{ 3 };
-    unsigned int texCoordComponents{ 3 };
+    unsigned int vertexComponents{ 3 };     // X,Y,Z by default
+    unsigned int normalComponents{ 3 };     // X,Y,Z by default
+    unsigned int texCoordComponents{ 2 };   // U,V by default
 
+};
+
+struct TransientTextureData {
+    void *texData;
+    int height;
+    int width;
+
+    // RGBA type info enum?
 };

@@ -135,6 +135,7 @@
     <ClCompile Include="Dispatch\RenderApiDispatch.cpp" />
     <ClCompile Include="Memory\LinearAllocator.cpp" />
     <ClCompile Include="Memory\PoolIndex.cpp" />
+    <ClCompile Include="Render\RenderContext.cpp" />
     <ClCompile Include="Render\RenderQueue.cpp" />
     <ClCompile Include="Types\ModelManager.cpp" />
     <ClCompile Include="Util\ObjLoader.cpp" />

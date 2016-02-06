@@ -2,6 +2,19 @@
 
 #include <GL/glew.h>
 
+void RenderApiDispatch::loadArrayBuffer(RenderContext &context, const LoadArrayBufferCommand *cmd) {
+    GPU::GeometryBuffer *geometryBuffer = context.geometryBufferPool.get(cmd->geometryBuffer);
+    glGenBuffers(1, &geometryBuffer->bufferId);
+    glBindBuffer(GL_ARRAY_BUFFER, geometryBuffer->bufferId);
+    glBufferData(GL_ARRAY_BUFFER, cmd->systemBufferSize, cmd->systemBuffer, GL_STATIC_DRAW);
+}
+
+void RenderApiDispatch::loadIndexArrayBuffer(RenderContext &context, const LoadArrayBufferCommand *cmd) {
+    GPU::GeometryBuffer *geometryBuffer = context.geometryBufferPool.get(cmd->geometryBuffer);
+    glGenBuffers(1, &geometryBuffer->bufferId);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, geometryBuffer->bufferId);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, cmd->systemBufferSize, cmd->systemBuffer, GL_STATIC_DRAW);
+}
 /*
 void RenderApiDispatch::drawIndexVertexBuffer(DrawIndexedVertexBufferCommand *cmd) {
     //VertexBufferObject *vbo = meshPool.getData(cmd->handle);
@@ -14,21 +27,6 @@ void RenderApiDispatch::setShaderProgram(SetShaderProgramCommand *cmd) {
     glUseProgram(cmd->programId);
     // todo include aux memory to set uniforms
 }
-
-void RenderApiDispatch::loadArrayBuffer(LoadArrayBufferCommand *cmd) {
-    unsigned int bufferId;
-
-    glGenBuffers(1, &bufferId);
-    //glGenVertexArrays(1, &vbo->vaoId);
-    //glBindVertexArray(vbo->vaoId);
-    //  glBindBuffer(GL_ARRAY_BUFFER, bufferId);
-    //glBufferData(GL_ARRAY_BUFFER, cmd->vertexCount, data, GL_STATIC_DRAW);
-}
-
-void RenderApiDispatch::loadIndexArrayBuffer(LoadIndexArrayBufferCommand *cmd) {
-
-}
-
 
 void RenderApiDispatch::createShader(CreateShaderCommand *cmd) {
     // TODO - use proper pool to get shader id

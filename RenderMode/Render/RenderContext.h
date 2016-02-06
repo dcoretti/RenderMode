@@ -3,9 +3,19 @@
 #include "../Memory/IndexedPool.h"
 #include "../Types/GPU/GeometryTypes.h"
 #include "../Types/Application/Material.h"
+#include "../Types/Application/Mesh.h"
+#include "../Types/Application/Model.h"
+
 
 // All pooled data the rendering engine has access to.
 struct RenderContext {
+    RenderContext(size_t geometryBufferPoolSize,
+        size_t geometryBufferLayoutPoolSize,
+        size_t texturePoolSize,
+        size_t shaderProgramsPoolSize,
+        size_t materialPoolSize,
+        size_t meshPoolSize,
+        size_t modelPoolSize);
     // TODO change all of these to be handed a pool to allocate from rather than a size constructor.
 
     // All Vertex, normal, texCoords allocated here.  TODO type handles to allow separate pools.
@@ -13,7 +23,7 @@ struct RenderContext {
     IndexedPool<GPU::GeometryBuffer> geometryBufferPool;
     IndexedPool<GPU::GeometryBufferLayout> geometryBufferLayoutPool;
     IndexedPool<GPU::Texture> texturePool;
-    IndexedPool<GPU::ShaderProgram> shaderPrograms; // overkill with overhead?
+    IndexedPool<GPU::ShaderProgram> shaderProgramsPool; // overkill with overhead?
 
     IndexedPool<Material> materialPool;
     IndexedPool<Mesh> meshPool;

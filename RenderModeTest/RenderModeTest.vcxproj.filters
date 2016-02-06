@@ -18,9 +18,6 @@
     <ClCompile Include="Util\ObjLoaderTest.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Types\ModelManagerTest.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Command\CommandBuilderTest.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>

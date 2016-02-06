@@ -1,15 +1,10 @@
 #pragma once
 
-#pragma once
 #include "../Memory/PoolIndex.h"
 #include "../Memory/LinearAllocator.h"
 #include "../Memory/PackedArray.h"
 
 #include "Command.h"
-
-struct CommandKey {
-    int tmp;
-};
 
 class CommandBucket {
 public:
@@ -24,6 +19,7 @@ public:
 
     template <typename CommandDataType> CommandDataType* getCommandData(Handle handle);
 
+    void * getDataFromCommand(Command * cmd);   // TODO this is a bit clunky...
     Command* getCommand(Handle commandHandle);
 
     void clear();

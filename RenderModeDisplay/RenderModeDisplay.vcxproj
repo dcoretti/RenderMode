@@ -21,6 +21,9 @@
   <ItemGroup>
     <ClCompile Include="main.cpp" />
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Util\RenderTest.h" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{E15DD6E5-3EBC-456D-9B14-FED7DCB81E49}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
@@ -103,8 +106,8 @@
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>C:\Users\DC\Programming\Libraries\glew\glew-1.13.0\include;C:\Users\DC\Programming\Libraries\glfw\glfw-3.1.2.bin.WIN64\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>_DEBUG;_WINDOWS;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>C:\Users\DC\Programming\Libraries\glew\glew-1.13.0\include;C:\Users\DC\Programming\Libraries\glfw\glfw-3.1.2.bin.WIN64\include;C:\Users\DC\Programming\RenderMode\RenderMode;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>

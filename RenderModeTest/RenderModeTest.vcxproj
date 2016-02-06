@@ -106,7 +106,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>C:\Users\DC\Programming\Libraries\googletest\googletest\msvc\x64\Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>C:\Users\DC\Programming\Libraries\googletest\googletest\msvc\x64\Debug;C:\Users\DC\Programming\Libraries\glew\glew-1.13.0\lib\Release\x64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>gtest_maind.lib;gtestd.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
@@ -158,7 +158,6 @@
     <ClCompile Include="Memory\PoolIndexTest.cpp" />
     <ClCompile Include="Memory\SparseArrayTest.cpp" />
     <ClCompile Include="Command\CommandBucketTest.cpp" />
-    <ClCompile Include="Types\ModelManagerTest.cpp" />
     <ClCompile Include="Util\ObjLoaderTest.cpp" />
   </ItemGroup>
   <ItemGroup>

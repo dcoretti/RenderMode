@@ -1,15 +1,10 @@
 #pragma once
-#include "../Memory/IndexedPool.h"
 #include "../Memory/LinearAllocator.h"
-#include "../Memory/PackedArray.h"
-#include "../Command/CommandBucket.h"
-#include "../Render/RenderQueue.h"
+#include "../Command/CommandBuilder.h"
 
 #include "Application/Model.h"
 #include "Application/Mesh.h"
 #include "Application/Material.h"
-
-#include "GPU/GeometryTypes.h"
 
 #include <glm/glm.hpp>
 #include <glm/gtx/hash.hpp>
@@ -37,7 +32,10 @@ using std::string;
 */
 class ModelManager {
 public:
-    Handle loadModel(std::string fname, RenderContext &rendercontext, CommandBucket &cmdBucket);
+    ModelManager(size_t meshDataPoolSize, size_t textureDataPoolSize, CommandBuilder *cmdBuilder);
+    ~ModelManager();
+
+    Handle loadModel(std::string fname, RenderContext &rendercontext);
     void clearTransientPools();
 private:
     struct TextureInfo {
@@ -45,14 +43,6 @@ private:
         void * textureData; // system data prior to loading to GPU
     };
 
-
-    struct TransientModelDataInfo {
-        void *vertices; // assumed float*3 (glm::vec3)
-        void *normals;  // assumed float*3 (glm::vec3)
-        void *texCoords; // assumed float*2 (glm::vec2)
-        void *indices;  // assumed int
-        unsigned int elements;
-    };
     /*
     struct TransientModelDataInfo {
         unsigned int elements;
@@ -60,13 +50,10 @@ private:
         void * geometryData;    // size elements*elementSize
     };*/
 
-    TransientModelDataInfo ModelManager::convertObjToInternal(Model &model, RenderContext &renderContext, ModelObject &obj);
+    TransientModelData ModelManager::convertObjToInternal(Model &model, RenderContext &renderContext, ModelObject &obj);
 
     void populateMaterial(RenderContext & renderContext, Material *material, ObjMaterial &objMaterial);
     TextureInfo loadTexture(RenderContext & renderContext, const std::string &textureName);
-    void submitModelLoad(CommandBucket &cmdBucket,
-                         const  Model& model,
-                         const TransientModelDataInfo& transientModelData);
 
 
     // Transient data pools priort to laod into GPU
@@ -74,6 +61,8 @@ private:
     LinearAllocator *textureDataPool;
 
     unordered_map<std::string, TextureInfo> texInfoByName;
+
+    CommandBuilder *cmdBuilder;
 };
 
 

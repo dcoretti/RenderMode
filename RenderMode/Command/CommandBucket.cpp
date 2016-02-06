@@ -42,3 +42,7 @@ int CommandBucket::getNumSortableCommands() {
 int CommandBucket::getTotalCommands() {
     return totalCount;
 }
+
+void * CommandBucket::getDataFromCommand(Command * cmd) {
+    return ((char *)cmd) + sizeof(Command);
+}

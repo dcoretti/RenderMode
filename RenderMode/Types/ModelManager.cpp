@@ -2,6 +2,17 @@
 #include <map>
 using std::map;
 
+ModelManager::ModelManager(size_t meshDataPoolSize, size_t textureDataPoolSize, CommandBuilder *cmdBuilder) 
+    : cmdBuilder(cmdBuilder) {
+    meshDataPool = new LinearAllocator(meshDataPoolSize);
+    textureDataPool = new LinearAllocator(textureDataPoolSize);
+}
+
+ModelManager::~ModelManager() {
+    delete meshDataPool;
+    delete textureDataPool;
+}
+
 void  ModelManager::clearTransientPools() {
     // TODO give memory for pool back. Use a global pool for transient resource loading?
     meshDataPool->clear();
@@ -48,7 +59,7 @@ void ModelManager::populateMaterial(RenderContext & renderContext, Material *mat
 }
 
 
-ModelManager::TransientModelDataInfo ModelManager::convertObjToInternal(Model &model,
+TransientModelData ModelManager::convertObjToInternal(Model &model,
                                                                         RenderContext &renderContext,
                                                                         ModelObject &obj){
     // TODO these should be allocated on some pool
@@ -121,14 +132,7 @@ ModelManager::TransientModelDataInfo ModelManager::convertObjToInternal(Model &m
         }
     }
 
-    TransientModelDataInfo modelInfo;
-    modelInfo.vertices = vertices;
-    modelInfo.normals = normals;
-    modelInfo.texCoords = texCoords;
-    modelInfo.indices = indices;
-    modelInfo.elements = curCoordIndex;
-
-    return modelInfo;
+    return TransientModelData(vertices, normals, texCoords, indices, curCoordIndex);
 }
 
 void constructLoadCommand(LoadArrayBufferCommand *cmd, 
@@ -145,27 +149,9 @@ void constructLoadCommand(LoadArrayBufferCommand *cmd,
     cmd->isIndexArray = isIndexArray;
 }
 
-void ModelManager::submitModelLoad(CommandBucket &cmdBucket,
-                                   const  Model& model, 
-                                   const TransientModelDataInfo& transientModelData) {
-    Handle loadVertexCmdHandle = cmdBucket.createCommand<LoadArrayBufferCommand>(CommandKey());
-    Handle loadNormalsCmdHandle = cmdBucket.createCommand<LoadArrayBufferCommand>(CommandKey());
-    Handle loadTexCoordsCmdHandle = cmdBucket.createCommand<LoadArrayBufferCommand>(CommandKey());
-    Handle loadIndicesCmdHandle = cmdBucket.createCommand<LoadArrayBufferCommand>(CommandKey());
-
-    LoadArrayBufferCommand * loadVertexCmd = cmdBucket.getCommandData<LoadArrayBufferCommand>(loadVertexCmdHandle);
-    LoadArrayBufferCommand * loadNormalsCmd = cmdBucket.getCommandData<LoadArrayBufferCommand>(loadNormalsCmdHandle);
-    LoadArrayBufferCommand * loadTexCoordsCmd = cmdBucket.getCommandData<LoadArrayBufferCommand>(loadTexCoordsCmdHandle);
-    LoadArrayBufferCommand * loadIndicesCmd = cmdBucket.getCommandData<LoadArrayBufferCommand>(loadIndicesCmdHandle);
-
-    constructLoadCommand(loadVertexCmd, model.vertices, false, transientModelData.vertices, sizeof(float) * 3, transientModelData.elements);
-    constructLoadCommand(loadVertexCmd, model.normals, false, transientModelData.normals, sizeof(float) * 3, transientModelData.elements);
-    constructLoadCommand(loadVertexCmd, model.texCoords, false, transientModelData.texCoords, sizeof(float) * 2, transientModelData.elements);
-    constructLoadCommand(loadVertexCmd, model.indices, false, transientModelData.indices, sizeof(int), transientModelData.elements);
-}
 
 
-Handle ModelManager::loadModel(std::string fname, RenderContext &renderContext, CommandBucket &cmdBucket) {
+Handle ModelManager::loadModel(std::string fname, RenderContext &renderContext) {
     ModelObject obj = ObjLoader::load(fname);
 
     Handle modelHandle = renderContext.modelPool.createObject();
@@ -177,9 +163,9 @@ Handle ModelManager::loadModel(std::string fname, RenderContext &renderContext, 
     model->indices = renderContext.geometryBufferPool.createObject();
     model->bufferLayout = renderContext.geometryBufferLayoutPool.createObject();
     
-    TransientModelDataInfo modelDataInfo = convertObjToInternal(*model, renderContext, obj);
-    submitModelLoad(cmdBucket, *model, modelDataInfo);
+    TransientModelData transientModelData = convertObjToInternal(*model, renderContext, obj);
 
-    cmdBucket.submit(); // ?? when should this actually be done.
+    cmdBuilder->buildLoadModelCommand(*model, transientModelData);
+
     return modelHandle;
 }

@@ -1,5 +1,6 @@
 #define WIN32_LEAN_AND_MEAN
 #include <iostream>
+#include <string>
 #include <io.h>
 #include <fcntl.h>
 #include <stdio.h>
@@ -10,6 +11,7 @@
 #include "GL/glew.h"
 #include <GLFW/glfw3.h>
 
+using std::string;
 using std::cout;
 using std::cin;
 using std::endl;
@@ -32,6 +34,10 @@ void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
         }
     }
 }
+
+
+
+
 
 int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
