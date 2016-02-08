@@ -2,7 +2,8 @@
 
 LinearAllocator::LinearAllocator(size_t size) {
     // TODO move actual allocation to outside of this to allow platform specific memory allocation without new
-    start = new char[size];
+    start = new char[size]();
+    
     end = start + size;
     cur = start;
 }

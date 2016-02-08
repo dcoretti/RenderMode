@@ -8,6 +8,10 @@
 #include "Render\RenderContext.h"
 #include "Render\RenderQueue.h"
 
+#include <iostream>
+using std::cout;
+using std::endl;
+
 std::string squareObjFile =
 "v 0 0 0\n"
 "v 1 0 0\n"
@@ -74,6 +78,10 @@ public:
 
 
     void attemptLoadCommands() {
+
+        cout << "command: " << sizeof(Command) << endl;
+        cout << "cmd data load: " << sizeof(LoadArrayBufferCommand) << endl;
+        cout << "starting test" << endl;
         Handle geometryBuffer = renderContext->geometryBufferPool.createObject();
         
         Handle loadCmd = cmdBuilder->buildLoadVertexArrayCommand(geometryBuffer, false, &v, sizeof(float), 4);
@@ -81,7 +89,7 @@ public:
         renderQueue.submit(&loadCmd, &key, 1);
 
         renderQueue.execute(*cmdBucket, *renderContext);
-
+        cout << "commands executed!" << endl;
     }
     ModelManager *mgr;
     CommandBucket *cmdBucket;

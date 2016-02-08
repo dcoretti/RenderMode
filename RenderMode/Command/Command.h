@@ -76,13 +76,13 @@ struct LoadArrayBufferCommand : public CommandData<LoadArrayBufferCommand> {
                             bool isIndexArray,
                             void * geometryData,
                             unsigned int elementSize,
-                            unsigned int arraySize) {
-        elementSize = elementSize;
-        geometryBuffer = geometryBuffer;
-        systemBuffer = geometryData;
-        systemBufferSize = elementSize * arraySize;
-        isIndexArray = isIndexArray;
-    }
+                            unsigned int arraySize):
+            elementSize(elementSize),
+            geometryBuffer(geometryBuffer),
+            systemBuffer(geometryData),
+            systemBufferSize(elementSize * arraySize),
+            isIndexArray(isIndexArray){ }
+
     LoadArrayBufferCommand() = default;
 
     void * systemBuffer;  // Data stored in system memory to be loaded (move to handle once impl uses that in ModelManager)

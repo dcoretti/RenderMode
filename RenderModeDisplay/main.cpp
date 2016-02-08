@@ -89,8 +89,14 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
     }
 
     bool quitting = false;
+    RenderTest t;
+    bool didTest = false;
     while (!glfwWindowShouldClose(window)) {
         glfwPollEvents();
+        if (!didTest) {
+            t.attemptLoadCommands();
+            didTest = true;
+        }
 
         glClear(GL_COLOR_BUFFER_BIT);
 
