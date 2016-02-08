@@ -20,7 +20,6 @@ void dispatchLoadArrayBuffer(const void * data, RenderContext & context) {
     }
 }
 
-
 void dispatchCreateShader(const void *data, RenderContext & context) {
     const CreateShaderCommand *cmdData = static_cast<const CreateShaderCommand *>(data);
 }

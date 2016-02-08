@@ -8,18 +8,21 @@
 */
 class RenderQueue {
 public:
+    RenderQueue() = default;
+
     static const size_t queueSize = 256;
 
     bool submit(Handle *cmds, CommandKey *keys, size_t size);
-    int execute(CommandBucket *cmdBucket, RenderContext &context);
+    int execute(CommandBucket &cmdBucket, RenderContext &context);
     bool isEmpty();
 private:
     struct CommandSet {
+        CommandSet() = default;
         CommandSet(Handle *cmds, CommandKey *keys, size_t numCommands) :
             cmds(cmds), keys(keys), numCommands(numCommands) {}
-        Handle *cmds;
-        CommandKey *keys;
-        size_t numCommands;
+        Handle *cmds{ nullptr };
+        CommandKey *keys{ nullptr };
+        size_t numCommands{ 0 };
     };
 
     CommandSet * pop();

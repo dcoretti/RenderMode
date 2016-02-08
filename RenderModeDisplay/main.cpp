@@ -11,13 +11,16 @@
 #include "GL/glew.h"
 #include <GLFW/glfw3.h>
 
+#include <string>
+#include <vector>
+
+#include "Util/RenderTest.h"
+
 using std::string;
 using std::cout;
 using std::cin;
 using std::endl;
 
-#include <string>
-#include <vector>
 
 void setupConsole() {
     AllocConsole();
@@ -34,10 +37,6 @@ void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
         }
     }
 }
-
-
-
-
 
 int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {

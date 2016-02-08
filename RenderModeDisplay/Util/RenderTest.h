@@ -1,3 +1,4 @@
+
 #pragma once
 #include <string>
 
@@ -5,6 +6,7 @@
 #include "Command\CommandBucket.h"
 #include "Command\CommandBuilder.h"
 #include "Render\RenderContext.h"
+#include "Render\RenderQueue.h"
 
 std::string squareObjFile =
 "v 0 0 0\n"
@@ -22,7 +24,39 @@ std::string squareObjFile =
 "f 1/1/1 2/2/2 3/3/3\n"
 "f 1/1/1 3/3/3 4/4/4";
 
+
+float v[] = {
+    0, 0, 0,
+    1, 0, 0,
+    1, 1, 0,
+    0, 1, 0
+};
+
+float vt[] = {
+    0, 0,
+    1, 0,
+    1, 1,
+    0, 1
+};
+
+float vn[] = {
+    0, 0, 1,
+    0, 0, 1,
+    0, 0, 1,
+    0, 0, 1
+};
+
+int i[] = {
+    1, 1, 1,
+    2, 2, 2,
+    3, 3, 3,
+    1, 1, 1,
+    3, 3, 3,
+    4, 4, 4
+};
+
 class RenderTest {
+public:
     RenderTest() {
         cmdBucket = new CommandBucket(100, 1024 * 1024 * 5);
         cmdBuilder = new CommandBuilder(cmdBucket);
@@ -38,12 +72,21 @@ class RenderTest {
     }
 
 
+
+    void attemptLoadCommands() {
+        Handle geometryBuffer = renderContext->geometryBufferPool.createObject();
+        
+        Handle loadCmd = cmdBuilder->buildLoadVertexArrayCommand(geometryBuffer, false, &v, sizeof(float), 4);
+        CommandKey key;
+        renderQueue.submit(&loadCmd, &key, 1);
+
+        renderQueue.execute(*cmdBucket, *renderContext);
+
+    }
     ModelManager *mgr;
     CommandBucket *cmdBucket;
     CommandBuilder *cmdBuilder;
     RenderContext *renderContext;
+    RenderQueue renderQueue;
 
 };
-void attemptLoadCommands() {
-
-}

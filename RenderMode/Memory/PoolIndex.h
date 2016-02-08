@@ -22,6 +22,6 @@ private:
         void * data;
     };
 
-    int baseVersion{ 0 };
+    unsigned int baseVersion{ 0 };
     SparseArray<InnerHandle> indices;
 };

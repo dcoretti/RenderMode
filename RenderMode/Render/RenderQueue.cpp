@@ -28,15 +28,15 @@ bool RenderQueue::isEmpty() {
     return empty;
 }
 
-int RenderQueue::execute(CommandBucket *cmdBucket, RenderContext &context) {
+int RenderQueue::execute(CommandBucket &cmdBucket, RenderContext &context) {
     int commandsRun = 0;
     while (!isEmpty()) {
         CommandSet * cmdSet = pop();
         for (int i = 0; i < cmdSet->numCommands; i++) {
             Handle handle = cmdSet->cmds[i];
-            Command * cmd = cmdBucket->getCommand(handle);
+            Command * cmd = cmdBucket.getCommand(handle);
             while (cmd != nullptr) {
-                cmd->dispatch(cmdBucket->getDataFromCommand(cmd), context);
+                cmd->dispatch(cmdBucket.getDataFromCommand(cmd), context);
                 cmd = cmd->next;
                 commandsRun++;
             }

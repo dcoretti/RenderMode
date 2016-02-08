@@ -24,6 +24,11 @@
   <ItemGroup>
     <ClInclude Include="Util\RenderTest.h" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\RenderMode\RenderMode.vcxproj">
+      <Project>{8b768547-5b8b-4bbc-abc6-a8abae39747c}</Project>
+    </ProjectReference>
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{E15DD6E5-3EBC-456D-9B14-FED7DCB81E49}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
@@ -107,13 +112,14 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>_DEBUG;_WINDOWS;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>C:\Users\DC\Programming\Libraries\glew\glew-1.13.0\include;C:\Users\DC\Programming\Libraries\glfw\glfw-3.1.2.bin.WIN64\include;C:\Users\DC\Programming\RenderMode\RenderMode;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\DC\Programming\Libraries\glm;C:\Users\DC\Programming\Libraries\glew\glew-1.13.0\include;C:\Users\DC\Programming\Libraries\glfw\glfw-3.1.2.bin.WIN64\include;C:\Users\DC\Programming\RenderMode\RenderMode;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>glfw3.lib;glew32.lib;opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>C:\Users\DC\Programming\Libraries\glew\glew-1.13.0\lib\Release\x64;C:\Users\DC\Programming\Libraries\glfw\glfw-3.1.2.bin.WIN64\lib-vc2015;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>C:\Users\DC\Programming\Libraries\glew\glew-1.13.0\lib\Release\x64;C:\Users\DC\Programming\Libraries\glfw\glfw-3.1.2.bin.WIN64\lib-vc2015</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
