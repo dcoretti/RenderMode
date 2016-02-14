@@ -96,8 +96,7 @@
       <SubSystem>Windows</SubSystem>
     </Link>
     <Lib>
-      <AdditionalDependencies>
-      </AdditionalDependencies>
+      <AdditionalDependencies>opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Lib>
     <Lib>
       <AdditionalLibraryDirectories>C:\Users\DC\Programming\Libraries\glew\glew-1.13.0\lib\Release\x64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
@@ -161,10 +160,12 @@
     <ClInclude Include="Render\RenderContext.h" />
     <ClInclude Include="Render\RenderQueue.h" />
     <ClInclude Include="Types\Application\TransientModelData.h" />
+    <ClInclude Include="Types\CommonTypes.h" />
     <ClInclude Include="Types\GPU\GeometryTypes.h" />
     <ClInclude Include="Types\Application\Material.h" />
     <ClInclude Include="Types\Application\Mesh.h" />
     <ClInclude Include="Types\Application\Model.h" />
+    <ClInclude Include="Types\GPU\ShaderTypes.h" />
     <ClInclude Include="Types\ModelManager.h" />
     <ClInclude Include="Util\ObjLoader.h" />
   </ItemGroup>

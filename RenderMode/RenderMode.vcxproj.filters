@@ -104,5 +104,11 @@
     <ClInclude Include="Types\Application\TransientModelData.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Types\GPU\ShaderTypes.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Types\CommonTypes.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

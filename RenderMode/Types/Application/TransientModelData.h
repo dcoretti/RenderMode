@@ -1,5 +1,5 @@
 #pragma once
-
+#include "../CommonTypes.h"
 /*
     Represents model data loaded from disk to be transferred to the GPU.
     
@@ -9,18 +9,27 @@
 */
 
 struct TransientModelData {
-    TransientModelData(void * vertices, void *normals, void *texCoords, void *indices, unsigned int elements):
-        vertices(vertices), normals(normals), texCoords(texCoords), indices(indices), elements(elements) {}
+    TransientModelData(void * vertices, unsigned int verticesSize,
+        void *normals, unsigned int normalsSize,
+        void *texCoords, unsigned int texCoordsSize,
+        void *indices, unsigned int indicesSize,
+        unsigned int vertexCount):
+        vertices(vertices, verticesSize),
+        normals(normals, normalsSize),
+        texCoords(texCoords, texCoordsSize),
+        indices(indices, indicesSize),
+        elements(elements) {}
     TransientModelData() = default;
 
-    void *vertices; 
-    void *normals; 
-    void *texCoords;
-    void *indices;  // assumed int
-    unsigned int elements;
 
-    unsigned int vertexElementSize{ sizeof(float) };
-    unsigned int indexElementSize{ sizeof(int) };
+    SystemBuffer vertices;
+    SystemBuffer normals;
+    SystemBuffer texCoords;
+    SystemBuffer indices;
+
+    unsigned int elements; // does this need to change for using indices vs just vertex array?
+
+
     unsigned int vertexComponents{ 3 };     // X,Y,Z by default
     unsigned int normalComponents{ 3 };     // X,Y,Z by default
     unsigned int texCoordComponents{ 2 };   // U,V by default
@@ -34,3 +43,5 @@ struct TransientTextureData {
 
     // RGBA type info enum?
 };
+
+

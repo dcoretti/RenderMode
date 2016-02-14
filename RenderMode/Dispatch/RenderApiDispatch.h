@@ -14,4 +14,10 @@ public:
 
     static void loadArrayBuffer(RenderContext &context, const LoadArrayBufferCommand *cmd);
     static void loadIndexArrayBuffer(RenderContext &context, const LoadArrayBufferCommand *cmd);
+
+
+    //static void enableVertexArray(RenderContext &context, const EnableVertexArrayCommand *cmd);
+    static void drawVertexArray(RenderContext &context, const DrawVertexArrayCommand *cmd);
+
+    static void initializeAndSetVertexArrayObject(RenderContext &context, const InitializeAndSetVertexArrayCommand *cmd);
 };

@@ -13,5 +13,6 @@ struct Mesh {
     Handle material;
     unsigned int indexOffset;   // index of first vertex in buffer for this mesh.
     unsigned int numElements;
-    Handle model;   // for vertex buffer references
+    // TODO use the vao itself? 
+    Handle model;   // for access to vao.  
 };

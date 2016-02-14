@@ -24,3 +24,5 @@ struct Handle {
         version = 0; 
     }
 };
+
+// TODO how to have a "null" handle?

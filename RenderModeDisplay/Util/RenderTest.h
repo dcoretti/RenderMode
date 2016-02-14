@@ -59,13 +59,24 @@ int i[] = {
     4, 4, 4
 };
 
+
+float onlyVertices[][3]{
+    {-0.9f,-0.9f, 0.0f},
+    {0.85f,-0.9f, 0.0f },
+    {-0.9f, 0.85f, 0.0f },
+    {0.9f,-0.85f, 0.0f },
+    {0.9f,0.9f, 0.0f },
+    {-0.85f,0.9f, 0.0f }
+};
+
+
 class RenderTest {
 public:
     RenderTest() {
+        renderContext = new RenderContext(1024, 1024, 1024, 1024, 1024, 1024, 1024, 1024);
         cmdBucket = new CommandBucket(100, 1024 * 1024 * 5);
-        cmdBuilder = new CommandBuilder(cmdBucket);
+        cmdBuilder = new CommandBuilder(*cmdBucket, *renderContext);
         mgr = new ModelManager(1024, 1024, cmdBuilder);
-        renderContext = new RenderContext(1024, 1024, 1024, 1024, 1024, 1024, 1024);
     }
 
     ~RenderTest() {
@@ -83,14 +94,37 @@ public:
         cout << "cmd data load: " << sizeof(LoadArrayBufferCommand) << endl;
         cout << "starting test" << endl;
         Handle geometryBuffer = renderContext->geometryBufferPool.createObject();
-        
-        Handle loadCmd = cmdBuilder->buildLoadVertexArrayCommand(geometryBuffer, false, &v, sizeof(float), 4);
+        GPU::GeometryBufferLayout bufferLayout;
+
+        vaoHandle = renderContext->vaoPool.createObject();
+        Handle vaoParentCommand = cmdBuilder->buildInitializeAndSetVertexArrayCommand(vaoHandle);
+
+        Handle loadCmd = cmdBuilder->buildLoadVertexArrayCommandWithParent(false,
+            SystemBuffer((void*)&onlyVertices, sizeof(float) * 3 * 3 * 2),  // two triangles
+            geometryBuffer,
+            GPU::ShaderAttributeBinding::VERTICES,
+            bufferLayout,
+            vaoParentCommand);
+
         CommandKey key;
-        renderQueue.submit(&loadCmd, &key, 1);
+        renderQueue.submit(&vaoParentCommand, &key, 1);
 
         renderQueue.execute(*cmdBucket, *renderContext);
         cout << "commands executed!" << endl;
+        cout << "qsize: " << renderQueue.queueSize << endl;
     }
+
+    void draw() {
+        GPU::DrawContext drawContext;
+        drawContext.indexOffset = 0;
+        drawContext.numElements = 6;
+        Handle cmd = cmdBuilder->buildDrawArraysCommand(*renderContext->vaoPool.get(vaoHandle), drawContext);
+        CommandKey key;
+
+        renderQueue.submit(&cmd, &key, 1);
+        renderQueue.execute(*cmdBucket, *renderContext);
+    }
+    Handle vaoHandle;
     ModelManager *mgr;
     CommandBucket *cmdBucket;
     CommandBuilder *cmdBuilder;

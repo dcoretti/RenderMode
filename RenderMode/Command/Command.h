@@ -2,7 +2,18 @@
 
 #include "../Memory/Handle.h"
 #include "../Types/GPU/GeometryTypes.h"
+#include "../Types/GPU/ShaderTypes.h"
 #include "../Render/RenderContext.h"
+#include "../Types/CommonTypes.h"
+/*
+    Requirements for commands:
+    -Commands should be plain old data.  No manipulation of the data should be done at this point.  The data
+        is just arguments to some graphics API fuction.
+    -Avoid multiple definitions of data.  Favor using one structure containing the data rather than copying the 
+        struct over to an unpacked version in the command data.  This will make updating the data quicker since there
+        is only one place to update it.
+    -Handles are used when data is updated (generating a bufferid).  Use the object behind it when a const is expected.
+*/
 
 
 /*
@@ -38,11 +49,28 @@ struct CommandKey {
 /////////////////////////////////////
 // commands
 
-void dispatchDrawVertexBuffer(const void * data, RenderContext & context);
-struct DrawIndexedBufferCommand : public CommandData <DrawIndexedBufferCommand> {
+// Attached to 1 or more EnableVertexArrayCommands
+void dispatchDrawVertexArray(const void * data, RenderContext &context);
+struct DrawVertexArrayCommand : public CommandData <DrawVertexArrayCommand> {
+    DrawVertexArrayCommand(GPU::VertexArrayObject vao, GPU::DrawContext drawContext) :
+        vao(vao), drawContext(drawContext) {}
+    DrawVertexArrayCommand() = default;
 
+    GPU::DrawContext drawContext;
+    GPU::VertexArrayObject vao;
 };
-const Command::DispatchCommand CommandData<DrawIndexedBufferCommand>::dispatchFn = &dispatchDrawVertexBuffer;
+
+const Command::DispatchCommand CommandData<DrawVertexArrayCommand>::dispatchFn = &dispatchDrawVertexArray;
+
+
+// no longer needed???
+//void dispatchEnableVertexArray(const void * data, RenderContext & context);
+//struct EnableVertexArrayCommand : public CommandData <EnableVertexArrayCommand> {
+//    //ShaderAttributeLayout attributeType;
+//    unsigned int size;
+//    int stride{ 0 };
+//};
+//const Command::DispatchCommand CommandData<EnableVertexArrayCommand>::dispatchFn = &dispatchEnableVertexArray;
 
 
 /*
@@ -72,26 +100,26 @@ const Command::DispatchCommand CommandData<SetShaderProgramCommand>::dispatchFn 
 // Load constant array buffer into the GPU (such as creating a GL_ARRAY_BUFFER)
 void dispatchLoadArrayBuffer(const void * data, RenderContext & context);
 struct LoadArrayBufferCommand : public CommandData<LoadArrayBufferCommand> {
-    LoadArrayBufferCommand(Handle geometryBuffer,
-                            bool isIndexArray,
-                            void * geometryData,
-                            unsigned int elementSize,
-                            unsigned int arraySize):
-            elementSize(elementSize),
-            geometryBuffer(geometryBuffer),
-            systemBuffer(geometryData),
-            systemBufferSize(elementSize * arraySize),
-            isIndexArray(isIndexArray){ }
+    LoadArrayBufferCommand(bool isIndexArray,
+                           SystemBuffer systemBuffer,
+                           Handle geometryBuffer,
+                           GPU::ShaderAttributeBinding shaderBinding,
+                           GPU::GeometryBufferLayout bufferLayout):
+        isIndexArray(isIndexArray),
+        systemBuffer(systemBuffer),
+        geometryBuffer(geometryBuffer),
+        shaderBinding(shaderBinding),
+        bufferLayout(bufferLayout){}
 
     LoadArrayBufferCommand() = default;
 
-    void * systemBuffer;  // Data stored in system memory to be loaded (move to handle once impl uses that in ModelManager)
-    unsigned int systemBufferSize;
-    unsigned int elementSize;
-
     bool isIndexArray;  // TODO maybe move this to a type if there is more than GL_ELEMENT_ARRAY_BUFFER, GL_ARRAY_BUFFER used
+    SystemBuffer systemBuffer;  // Data stored in system memory to be loaded (move to handle once impl uses that in ModelManager)
+
     // resulting GPU id will be placed in this location by command executor. Command creator must preallocate this in a pool
     Handle geometryBuffer;  
+    GPU::ShaderAttributeBinding shaderBinding;   // type of data mapped to shader input poiint
+    GPU::GeometryBufferLayout bufferLayout;
 };
 const Command::DispatchCommand CommandData<LoadArrayBufferCommand>::dispatchFn = &dispatchLoadArrayBuffer;
 
@@ -108,3 +136,11 @@ struct CreateShaderCommand : public CommandData<CreateShaderCommand> {
     GPU::ShaderType shaderType;
 };
 const Command::DispatchCommand CommandData<CreateShaderCommand>::dispatchFn = &dispatchCreateShader;
+
+
+
+void initializeAndSetVertexArray(const void *data, RenderContext &context);
+struct InitializeAndSetVertexArrayCommand : public CommandData<InitializeAndSetVertexArrayCommand> {
+    Handle vertexArrayObject;
+};
+const Command::DispatchCommand CommandData<InitializeAndSetVertexArrayCommand>::dispatchFn = &initializeAndSetVertexArray;

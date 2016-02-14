@@ -60,8 +60,8 @@ void ModelManager::populateMaterial(RenderContext & renderContext, Material *mat
 
 
 TransientModelData ModelManager::convertObjToInternal(Model &model,
-                                                                        RenderContext &renderContext,
-                                                                        ModelObject &obj){
+                                                    RenderContext &renderContext,
+                                                    ModelObject &obj){
     // TODO these should be allocated on some pool
     map<string, Handle> materialHandles;
     size_t vSize = obj.vertices.size();
@@ -132,37 +132,32 @@ TransientModelData ModelManager::convertObjToInternal(Model &model,
         }
     }
 
-    return TransientModelData(vertices, normals, texCoords, indices, curCoordIndex);
-}
-
-void constructLoadCommand(LoadArrayBufferCommand *cmd, 
-    Handle geometryBuffer,
-    bool isIndexArray,
-    void * geometryData, 
-    unsigned int elementSize,
-    unsigned int arraySize) {
-
-    cmd->elementSize = elementSize;
-    cmd->geometryBuffer = geometryBuffer;
-    cmd->systemBuffer = geometryData;
-    cmd->systemBufferSize = elementSize * arraySize;
-    cmd->isIndexArray = isIndexArray;
+    return TransientModelData(vertices, curCoordIndex * sizeof(glm::vec3),
+        normals, curCoordIndex * sizeof(glm::vec3),
+        texCoords, curCoordIndex * sizeof(glm::vec2),
+        indices, curCoordIndex * sizeof(unsigned int),
+        curCoordIndex);
 }
 
 
 
 Handle ModelManager::loadModel(std::string fname, RenderContext &renderContext) {
+    // TODO consider moving this to a constructor with rendercontext?
     ModelObject obj = ObjLoader::load(fname);
 
     Handle modelHandle = renderContext.modelPool.createObject();
     Model *model = renderContext.modelPool.get(modelHandle);
     // Preallocate space for graphics API handle to GPU buffer that render engine can populate on load commands.
+    model->vao = renderContext.vaoPool.createObject();
     model->vertices = renderContext.geometryBufferPool.createObject();
     model->texCoords = renderContext.geometryBufferPool.createObject();
     model->normals = renderContext.geometryBufferPool.createObject();
     model->indices = renderContext.geometryBufferPool.createObject();
-    model->bufferLayout = renderContext.geometryBufferLayoutPool.createObject();
-    
+
+    model->vertexLayout = renderContext.geometryBufferLayoutPool.createObject();
+    model->normalsLayout = renderContext.geometryBufferLayoutPool.createObject();
+    model->texCoordsLayout = renderContext.geometryBufferLayoutPool.createObject();
+
     TransientModelData transientModelData = convertObjToInternal(*model, renderContext, obj);
 
     cmdBuilder->buildLoadModelCommand(*model, transientModelData);

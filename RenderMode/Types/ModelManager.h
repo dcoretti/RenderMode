@@ -21,6 +21,8 @@ using std::unordered_map;
 using std::string;
 
 /*
+    Model manager manages the creation of model and mesh objects.
+    Handles initializing model, mesh objects to be used in command creation.  
 
     1. load resources into mesh data pool
     2. generate commands to load that data to the gpu when requested

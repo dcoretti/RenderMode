@@ -10,11 +10,20 @@ struct Model {
             delete[] meshes; 
         } 
     }   
-    Handle bufferLayout;
+
+    // rendering engine identifiers for the buffers
+    // Only really used if updating the actual data, except for vao
+    Handle vao;
     Handle vertices;
     Handle normals;
     Handle texCoords;
     Handle indices;
+
+    // how is the data laid out in memory
+    Handle vertexLayout;
+    Handle normalsLayout;
+    Handle texCoordsLayout;
+
 
     int numMeshes; 
     Handle * meshes{ nullptr };
