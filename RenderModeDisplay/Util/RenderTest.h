@@ -77,6 +77,9 @@ public:
         cmdBucket = new CommandBucket(100, 1024 * 1024 * 5);
         cmdBuilder = new CommandBuilder(*cmdBucket, *renderContext);
         mgr = new ModelManager(1024, 1024, cmdBuilder);
+
+        drawContext.indexOffset = 0;
+        drawContext.numElements = 6;
     }
 
     ~RenderTest() {
@@ -111,19 +114,23 @@ public:
 
         renderQueue.execute(*cmdBucket, *renderContext);
         cout << "commands executed!" << endl;
-        cout << "qsize: " << renderQueue.queueSize << endl;
+        cout << "qsize: " << renderQueue.numCommands() << endl;
+
+        drawCmd = cmdBuilder->buildDrawArraysCommand(*renderContext->vaoPool.get(vaoHandle), drawContext);
     }
 
     void draw() {
-        GPU::DrawContext drawContext;
-        drawContext.indexOffset = 0;
-        drawContext.numElements = 6;
-        Handle cmd = cmdBuilder->buildDrawArraysCommand(*renderContext->vaoPool.get(vaoHandle), drawContext);
+
+        
         CommandKey key;
 
-        renderQueue.submit(&cmd, &key, 1);
+        renderQueue.submit(&drawCmd, &key, 1);
         renderQueue.execute(*cmdBucket, *renderContext);
     }
+
+    Handle drawCmd;
+    GPU::DrawContext drawContext;
+
     Handle vaoHandle;
     ModelManager *mgr;
     CommandBucket *cmdBucket;

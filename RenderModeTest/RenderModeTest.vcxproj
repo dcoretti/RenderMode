@@ -158,6 +158,7 @@
     <ClCompile Include="Memory\PoolIndexTest.cpp" />
     <ClCompile Include="Memory\SparseArrayTest.cpp" />
     <ClCompile Include="Command\CommandBucketTest.cpp" />
+    <ClCompile Include="Render\RenderQueueTest.cpp" />
     <ClCompile Include="Util\ObjLoaderTest.cpp" />
   </ItemGroup>
   <ItemGroup>

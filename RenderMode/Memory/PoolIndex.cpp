@@ -5,13 +5,16 @@ PoolIndex::PoolIndex(size_t indexSize):indices(indexSize) {
 
 Handle PoolIndex::createHandle() {
     Handle handle;
+    // Handle.index points to the index number in the sparse array.
+    // That contains
     handle.index = indices.allocate();
+
     InnerHandle * index = indices.get(handle.index);
 
     if (index->version < baseVersion) {
         index->version = baseVersion;
     }
-    index->version = handle.version;
+    handle.version = index->version;
     return handle;
 }
 
@@ -30,6 +33,16 @@ bool PoolIndex::isValid(Handle handle) {
     return false;
 }
 
+bool PoolIndex::isValid(Handle handle, InnerHandle *index) {
+    if (index != nullptr &&
+        handle.version >= baseVersion && 
+        handle.version == index->version) {
+        return true;
+    }
+    return false;
+}
+
+
 void PoolIndex::setInnerIndexValue(Handle handle, void * data) {
     if (isValid(handle)) {
         indices.get(handle.index)->data = data;
@@ -37,7 +50,8 @@ void PoolIndex::setInnerIndexValue(Handle handle, void * data) {
 }
 
 void * PoolIndex::get(Handle handle) {
-    return isValid(handle) ? indices.get(handle.index)->data: nullptr;
+    InnerHandle * ih = indices.get(handle.index);
+    return isValid(handle, ih) ? ih->data: nullptr;
 }
 
 void PoolIndex::clear() {

@@ -30,7 +30,7 @@ private:
     PackedArray<Data> dataPool;
 
     // Base version for all Handle.version values in indices to allow quick clearing.
-    unsigned int baseVersion{ 0 };
+    unsigned int baseVersion{ defaultHandleBaseVersion };
     size_t maxSize;
 };
 

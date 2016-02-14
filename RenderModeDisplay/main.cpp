@@ -91,6 +91,7 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
     bool quitting = false;
     RenderTest t;
     bool didTest = false;
+    unsigned int frameCounter = 0;
     while (!glfwWindowShouldClose(window)) {
         glfwPollEvents();
         if (!didTest) {
@@ -102,6 +103,8 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
         t.draw();
         // do stuff
         glfwSwapBuffers(window);
+        frameCounter++;
+        cout << frameCounter << endl;
     }
 
     glfwTerminate();

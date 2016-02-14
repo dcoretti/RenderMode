@@ -27,7 +27,8 @@ private:
 
 template<typename T>
 PackedArray<T>::PackedArray(size_t size) : size(size) {
-    dataArray = new T[size];
+    // Note the () to zero-initialize - IMPORTANT for pod types like HANDLE
+    dataArray = new T[size]();
 }
 
 // Get an index to the data in the array.

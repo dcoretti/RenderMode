@@ -1,5 +1,5 @@
 #pragma once
-
+#include <type_traits>
 /*
     POD Handle for indexed pooling of data that can be copied at will without depending
     on the underlying data's location in a memory pool.
@@ -16,13 +16,13 @@
 */
 struct Handle {
     // TODO use variable bit size of index/version depending on type?
-    unsigned int index{ 0 };
-    unsigned short version{ 0 };
-
-    // Note: should only be called from a pool
-    void resetVersion() { 
-        version = 0; 
-    }
+    unsigned int index;
+    unsigned short version;
 };
+
+const unsigned int defaultHandleBaseVersion = 1;
+
+static_assert(std::is_trivial<Handle>::value, "Handle must be trivial!");
+static_assert(std::is_standard_layout<Handle>::value, "Handle must be a std layout!");
 
 // TODO how to have a "null" handle?

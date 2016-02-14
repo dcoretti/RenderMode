@@ -16,7 +16,10 @@ struct DataElement {
 template <typename T>
 class SparseArray {
 public:
-    SparseArray(size_t maxSize) : maxSize(maxSize) { dataArray = new DataElement<T>[maxSize]; }
+    SparseArray(size_t maxSize) : maxSize(maxSize) { 
+        // () to zero-initialize.  IMPORTANT for POD type storage to avoid initializing manually
+        dataArray = new DataElement<T>[maxSize](); 
+    }
     int allocate();
     void remove(int index);
     T * get(int index);

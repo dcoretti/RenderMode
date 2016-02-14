@@ -1,31 +1,48 @@
 #include "RenderQueue.h"
 
+RenderQueue::RenderQueue(): RenderQueue(defaultQueueSize) {
+}
+
+RenderQueue::RenderQueue(unsigned int maxCommands): maxCommands(maxCommands) {
+    queue = new CommandSet[maxCommands];
+    
+}
+
+RenderQueue::~RenderQueue() {
+    delete[] queue;
+}
+
+
 bool RenderQueue::submit(Handle * cmds, CommandKey *keys, size_t size) {
-    if (!empty && head == tail) {
+    if (curCommands == maxCommands) {
         return false;
     }
     queue[tail] = CommandSet(cmds, keys, size);
-    tail = tail + 1 % queueSize;
-    empty = false;
+    tail = (tail + 1) % maxCommands;
 
+    curCommands++;
     return true;
 }
 
-RenderQueue::CommandSet * RenderQueue::pop() {
-    if (empty || head == tail) {
+unsigned int RenderQueue::numCommands() {
+    return curCommands;
+}
+
+
+CommandSet * RenderQueue::pop() {
+    if (curCommands == 0) {
         return nullptr;
     }
 
     CommandSet *cmdSet = &queue[head];
-    head = head+ 1 % queueSize;
-    if (head == tail) {
-        empty = true;
-    }
+    head = (head + 1) % maxCommands;
+
+    curCommands--;
     return cmdSet;
 }
 
 bool RenderQueue::isEmpty() {
-    return empty;
+    return curCommands == 0;
 }
 
 int RenderQueue::execute(CommandBucket &cmdBucket, RenderContext &context) {

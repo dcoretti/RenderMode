@@ -14,7 +14,7 @@ TEST(IndexedPoolTest, testPoolHandle) {
     IndexedPool<char> pool(5);
     Handle h = pool.createObject();
     EXPECT_EQ(0, h.index);
-    EXPECT_EQ(0, h.version);
+    EXPECT_EQ(defaultHandleBaseVersion, h.version);
 
     char * c = pool.get(h);
     EXPECT_NE(nullptr, c);
@@ -43,7 +43,7 @@ TEST(IndexedPoolTest, testDelete) {
     IndexedPool<char> pool(1);
     Handle h = pool.createObject();
     EXPECT_EQ(0, h.index);
-    EXPECT_EQ(0, h.version);
+    EXPECT_EQ(defaultHandleBaseVersion, h.version);
     pool.deleteObject(h);
     EXPECT_EQ(nullptr, pool.get(h));
     Handle h2 = pool.createObject();
@@ -83,4 +83,13 @@ TEST(IndexedPoolTest, testClear) {
         // All handles are now invalid as we have a base version for all items that has changed.
         EXPECT_EQ(nullptr, pool.get(handles[i]));
     }
+}
+
+
+TEST(IndexedPoolTest, testUnderlyingStructAssumptions) {
+    // Basic assumption of sparse array zero-initializing the list.  
+    //Required for the pool-index to function properly
+    SparseArray<Handle> arr(3);
+    EXPECT_EQ(0, arr.get(0)->version);
+    EXPECT_EQ(0, arr.get(0)->index);
 }

@@ -18,10 +18,13 @@ public:
     void clear();
 private:
     struct InnerHandle {
-        unsigned int version;
-        void * data;
+        unsigned int version{ defaultHandleBaseVersion };
+        void * data{ nullptr };
     };
 
-    unsigned int baseVersion{ 0 };
+    bool isValid(Handle handle, InnerHandle *index);
+
+
+    unsigned int baseVersion{ defaultHandleBaseVersion };
     SparseArray<InnerHandle> indices;
 };
