@@ -32,7 +32,8 @@ namespace GPU {
 
     struct ShaderData {
         char * source;
-        ShaderType type;
+        // maybe add this back later?
+        //ShaderType type; 
     };
 
     const unsigned int numShaderAttributeComponents = 3;

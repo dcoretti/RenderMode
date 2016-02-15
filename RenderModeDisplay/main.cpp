@@ -92,6 +92,7 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
     RenderTest t;
     bool didTest = false;
     unsigned int frameCounter = 0;
+    glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
     while (!glfwWindowShouldClose(window)) {
         glfwPollEvents();
         if (!didTest) {
@@ -101,7 +102,7 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 
         glClear(GL_COLOR_BUFFER_BIT);
         t.draw();
-
+        glFlush();
         glfwSwapBuffers(window);
         frameCounter++;
         //cout << frameCounter << endl;

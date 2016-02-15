@@ -89,7 +89,7 @@ void RenderApiDispatch::createShader(RenderContext &context, const CreateShaderC
     checkShaderCompileStatus(shaderProgram->vertexShader);
 
     shaderProgram->fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-    glShaderSource(shaderProgram->vertexShader, 1, &cmd->fragmentShaderData.source, NULL);   // null for len assumes \0 terminated.
+    glShaderSource(shaderProgram->fragmentShader, 1, &cmd->fragmentShaderData.source, NULL);   // null for len assumes \0 terminated.
     glCompileShader(shaderProgram->fragmentShader);
     checkShaderCompileStatus(shaderProgram->fragmentShader);
 
@@ -117,31 +117,4 @@ void RenderApiDispatch::drawIndexVertexBuffer(DrawIndexedVertexBufferCommand *cm
     glDrawArrays(GL_TRIANGLES, cmd->first, cmd->numVertices);
     glBindVertexArray(0);
 }
-
-
-void RenderApiDispatch::createShader(CreateShaderCommand *cmd) {
-    // TODO - use proper pool to get shader id
-
-    GLuint shader = glCreateShader(eShaderType);
-    const char *strFileData = strShaderFile.c_str();
-    glShaderSource(shader, 1, &strFileData, NULL);
-
-    glCompileShader(shader);
-
-    GLint status;
-    glGetShaderiv(shader, GL_COMPILE_STATUS, &status);
-    if (status == GL_FALSE)
-    {
-    GLint infoLogLength;
-    glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &infoLogLength);
-
-    GLchar *strInfoLog = new GLchar[infoLogLength + 1];
-    glGetShaderInfoLog(shader, infoLogLength, NULL, strInfoLog);
-    cout << "Compule failure for " << eShaderType << " shader: " << strInfoLog << endl;
-    }
-    return shader;
-
-}
 */
-
-
