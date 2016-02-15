@@ -15,6 +15,7 @@
     -Handles are used when data is updated (generating a bufferid).  Use the object behind it when a const is expected.
 */
 
+//TODO probably a good idea to ditch the constructors to keep these PODS
 
 /*
     General Linked set of commands, each with a set of 
@@ -78,22 +79,10 @@ const Command::DispatchCommand CommandData<DrawVertexArrayCommand>::dispatchFn =
 */
 void dispatchSetShaderProgram(const void * data, RenderContext & context);
 struct SetShaderProgramCommand : public CommandData <SetShaderProgramCommand> {
-    SetShaderProgramCommand(Handle shaderProgramHandle) : shaderProgramHandle(shaderProgramHandle) {}
-    SetShaderProgramCommand() = default;
-
-    Handle shaderProgramHandle;
-
-    // For shader loading:
-    // TODO: how to map attribute layout to attrib array when drawing vertex,normal, etc.
-    // For GL this is     glEnableVertexAttribArray(INDEX);
-    // in the shader the layout specifies that via layout (location = 0) in vec4 position;
-    // Maybe use glGetAttribLocation to find layout of named attributes expected by the engine to automatically bind those
-    // and move the attribute to an enum on the draw command to specify what type of data is being pointed at (vertex, normal, etc)
-    // and figure out the glEnableVertexAttribArray from there.
-
-    // or on load of shader, specify locations via glBindAttribLocation via common naming convention in the glsl
-    // see: http://stackoverflow.com/questions/4635913/explicit-vs-automatic-attribute-location-binding-for-opengl-shaders
-};
+    // Maybe use handle here otherwise load has to be executed first so that this isn't a copy of
+    // the pre-initialized value
+    GPU::ShaderProgram shaderProgram;  
+ };
 const Command::DispatchCommand CommandData<SetShaderProgramCommand>::dispatchFn = &dispatchSetShaderProgram;
 
 
@@ -126,14 +115,13 @@ const Command::DispatchCommand CommandData<LoadArrayBufferCommand>::dispatchFn =
 
 void dispatchCreateShader(const void *data, RenderContext & context);
 struct CreateShaderCommand : public CommandData<CreateShaderCommand> {
-    CreateShaderCommand(Handle shaderProgram, const char * shaderSourceData, GPU::ShaderType shaderType) :
-        shaderProgram(shaderProgram), shaderSourceData(shaderSourceData), shaderType(shaderType){
-    }
+    CreateShaderCommand(Handle shaderProgram, GPU::ShaderData vertexShaderData, GPU::ShaderData fragmentShaderData)
+        :shaderProgram(shaderProgram), vertexShaderData(vertexShaderData), fragmentShaderData(fragmentShaderData) {}
     CreateShaderCommand() = default;
 
     Handle shaderProgram;   // pre-allocated location for shader id.  Will be allocated by renderer upon creation.
-    const char * shaderSourceData;    // pooled shader source code str
-    GPU::ShaderType shaderType;
+    GPU::ShaderData vertexShaderData;
+    GPU::ShaderData fragmentShaderData;
 };
 const Command::DispatchCommand CommandData<CreateShaderCommand>::dispatchFn = &dispatchCreateShader;
 

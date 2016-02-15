@@ -4,21 +4,21 @@
 
 void dispatchSetShaderProgram(const void *data, RenderContext & context) {
     const SetShaderProgramCommand * cmdData = static_cast<const SetShaderProgramCommand *>(data);
-    //dispatch.setShaders(cmdData);
+    RenderApiDispatch::setShaderProgram(context, cmdData);
 }
 
 void dispatchLoadArrayBuffer(const void *data, RenderContext & context) {
     const LoadArrayBufferCommand  *cmdData = static_cast<const LoadArrayBufferCommand *>(data);
     if (cmdData->isIndexArray) {
-        RenderApiDispatch::loadArrayBuffer(context, cmdData);
-
-    } else {
         RenderApiDispatch::loadIndexArrayBuffer(context, cmdData);
+    } else {
+        RenderApiDispatch::loadArrayBuffer(context, cmdData);
     }
 }
 
 void dispatchCreateShader(const void *data, RenderContext & context) {
     const CreateShaderCommand *cmdData = static_cast<const CreateShaderCommand *>(data);
+    RenderApiDispatch::createShader(context, cmdData);
 }
 
 void dispatchDrawVertexArray(const void *data, RenderContext &context) {

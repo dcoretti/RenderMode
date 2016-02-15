@@ -48,6 +48,9 @@ public:
     //Handle buildSetShaderProgramCommand(Handle shaderProgramHandle);
 
     Handle buildDrawArraysCommand(GPU::VertexArrayObject &vao, GPU::DrawContext &context);
+
+    Handle buildSetShaderProgramCommand(GPU::ShaderProgram shaderProgram);
+    Handle buildCreateShaderCommand(GPU::ShaderData vertexShader, GPU::ShaderData fragmentShader, Handle shaderProgram);
 private:
     CommandBucket *cmdBucket;
     RenderContext *renderContext;

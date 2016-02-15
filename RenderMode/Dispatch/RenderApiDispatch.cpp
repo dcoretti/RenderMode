@@ -44,6 +44,72 @@ void RenderApiDispatch::initializeAndSetVertexArrayObject(RenderContext &context
     glBindVertexArray(vao->vaoId);
 }
 
+
+void checkShaderCompileStatus(unsigned int shaderId) {
+    int status;
+    glGetShaderiv(shaderId, GL_COMPILE_STATUS, &status);
+    if (status == GL_FALSE) {
+        GLint infoLogLength;
+        glGetShaderiv(shaderId, GL_INFO_LOG_LENGTH, &infoLogLength);
+
+        char *strInfoLog = new char[infoLogLength + 1];
+        glGetShaderInfoLog(shaderId, infoLogLength, NULL, strInfoLog);
+        cout << "Compule failure for shader " << shaderId << " shader: " << strInfoLog << endl;
+        delete[] strInfoLog;
+    } else {
+        cout << "Shader compilation successful." << endl;
+    }
+}
+
+void checkShaderLinkStatus(unsigned int shaderProgram) {
+    int status;
+    glGetProgramiv(shaderProgram, GL_LINK_STATUS, &status);
+    if (status == GL_FALSE) {
+        GLint infoLogLength;
+        glGetProgramiv(shaderProgram, GL_INFO_LOG_LENGTH, &infoLogLength);
+
+        GLchar *strInfoLog = new GLchar[infoLogLength + 1];
+        glGetProgramInfoLog(shaderProgram, infoLogLength, NULL, strInfoLog);
+
+        cout << "Linker failure: " << strInfoLog << endl;
+        delete[] strInfoLog;
+    } else {
+        cout << "Shader link successful." << endl;
+    }
+}
+
+
+
+void RenderApiDispatch::createShader(RenderContext &context, const CreateShaderCommand * cmd) {
+    GPU::ShaderProgram *shaderProgram = context.shaderProgramsPool.get(cmd->shaderProgram);
+
+    shaderProgram->vertexShader = glCreateShader(GL_VERTEX_SHADER);
+    glShaderSource(shaderProgram->vertexShader, 1, &cmd->vertexShaderData.source, NULL);   // null for len assumes \0 terminated.
+    glCompileShader(shaderProgram->vertexShader);
+    checkShaderCompileStatus(shaderProgram->vertexShader);
+
+    shaderProgram->fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
+    glShaderSource(shaderProgram->vertexShader, 1, &cmd->fragmentShaderData.source, NULL);   // null for len assumes \0 terminated.
+    glCompileShader(shaderProgram->fragmentShader);
+    checkShaderCompileStatus(shaderProgram->fragmentShader);
+
+    shaderProgram->shaderProgramId = glCreateProgram();
+    glAttachShader(shaderProgram->shaderProgramId, shaderProgram->vertexShader);
+    glAttachShader(shaderProgram->shaderProgramId, shaderProgram->fragmentShader);
+    glLinkProgram(shaderProgram->shaderProgramId);
+    checkShaderLinkStatus(shaderProgram->shaderProgramId);
+
+    //glDetachShader(shaderProgram->shaderProgramId, shaderProgram->vertexShader);
+    //glDetachShader(shaderProgram->shaderProgramId, shaderProgram->fragmentShader);
+    //glDeleteShader(shaderProgram->vertexShader);
+    //glDeleteShader(shaderProgram->fragmentShader);
+}
+
+
+void RenderApiDispatch::setShaderProgram(RenderContext &context, const SetShaderProgramCommand *cmd) {
+    glUseProgram(cmd->shaderProgram.shaderProgramId);
+}
+
 /*
 void RenderApiDispatch::drawIndexVertexBuffer(DrawIndexedVertexBufferCommand *cmd) {
     //VertexBufferObject *vbo = meshPool.getData(cmd->handle);
@@ -52,10 +118,6 @@ void RenderApiDispatch::drawIndexVertexBuffer(DrawIndexedVertexBufferCommand *cm
     glBindVertexArray(0);
 }
 
-void RenderApiDispatch::setShaderProgram(SetShaderProgramCommand *cmd) {
-    glUseProgram(cmd->programId);
-    // todo include aux memory to set uniforms
-}
 
 void RenderApiDispatch::createShader(CreateShaderCommand *cmd) {
     // TODO - use proper pool to get shader id

@@ -6,6 +6,8 @@
     arrays.  Used by load commands to bind buffers to layout points when defining a vertex array object
 */
 namespace GPU {
+    // or on load of shader, specify locations via glBindAttribLocation via common naming convention in the glsl
+    // see: http://stackoverflow.com/questions/4635913/explicit-vs-automatic-attribute-location-binding-for-opengl-shaders
     enum ShaderAttributeBinding {
         VERTICES = 0,
         UV = 1,
@@ -14,6 +16,10 @@ namespace GPU {
 
     struct ShaderProgram {
         unsigned int shaderProgramId; // compiled program id for a shader program 
+
+        // Shaders linked to shaderProgramId
+        unsigned int vertexShader;
+        unsigned int fragmentShader;
     };
 
 
@@ -22,5 +28,12 @@ namespace GPU {
         Fragment
     };
 
+
+
+    struct ShaderData {
+        char * source;
+        ShaderType type;
+    };
+
+    const unsigned int numShaderAttributeComponents = 3;
 }
-const unsigned int numShaderAttributeComponents = 3;

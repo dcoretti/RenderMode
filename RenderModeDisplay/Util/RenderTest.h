@@ -59,16 +59,36 @@ int i[] = {
     4, 4, 4
 };
 
+//
+//float onlyVerticesSq[]{
+//    -0.9f,-0.9f, 1.0f,
+//    0.85f,-0.9f, 1.0f,
+//    -0.9f, 0.85f, 1.0f,
+//    0.9f,-0.85f, 1.0f,
+//    0.9f,0.9f, 1.0f,
+//    -0.85f,0.9f, 1.0f 
+//};
 
-float onlyVertices[][3]{
-    {-0.9f,-0.9f, 0.0f},
-    {0.85f,-0.9f, 0.0f },
-    {-0.9f, 0.85f, 0.0f },
-    {0.9f,-0.85f, 0.0f },
-    {0.9f,0.9f, 0.0f },
-    {-0.85f,0.9f, 0.0f }
+float tri[]{
+    -1.0f, -1.0f, 0.0f,
+    1.0f, -1.0f, 0.0f,
+    0.0f,  1.0f, 0.0f,
 };
 
+
+char vertexShader[] =
+"#version 430 core\n"
+"layout(location = 0) in vec4 pos;\n"
+"void main() {\n"
+"    gl_Position = pos;\n"
+"}";
+
+char fragmentShader[] =
+"#version 430 core\n"
+"out vec4 fragColor;\n"
+"void main() {\n"
+"    fragColor = vec4(0.0, 1.0, 0.0, 1.0);\n"
+"}\n";
 
 class RenderTest {
 public:
@@ -79,7 +99,7 @@ public:
         mgr = new ModelManager(1024, 1024, cmdBuilder);
 
         drawContext.indexOffset = 0;
-        drawContext.numElements = 6;
+        drawContext.numElements = 3;
     }
 
     ~RenderTest() {
@@ -92,10 +112,30 @@ public:
 
 
     void attemptLoadCommands() {
-
-        cout << "command: " << sizeof(Command) << endl;
-        cout << "cmd data load: " << sizeof(LoadArrayBufferCommand) << endl;
         cout << "starting test" << endl;
+        int executed = 0;
+        CommandKey key;
+
+        //TODO
+        // this order shouldn't be really needed.. VAO should be independent of the active program
+
+        // Load and set shader
+        shaderProgramHandle = renderContext->shaderProgramsPool.createObject();
+        vertexShaderData.source = vertexShader;
+        fragmentShaderData.source = fragmentShader;
+        //vertexShaderData.type =
+        Handle loadShaderCmd = cmdBuilder->buildCreateShaderCommand(vertexShaderData, fragmentShaderData, shaderProgramHandle);
+        renderQueue.submit(&loadShaderCmd, &key, 1);
+
+        // submit this separately because setshaderprogramcommand copies the shader program id so it needs to be submitted first.
+        executed += renderQueue.execute(*cmdBucket, *renderContext);
+
+        GPU::ShaderProgram *shader = renderContext->shaderProgramsPool.get(shaderProgramHandle);
+        setShaderCmd = cmdBuilder->buildSetShaderProgramCommand(*shader);
+        renderQueue.submit(&setShaderCmd, &key, 1);
+
+
+        // load vertices
         Handle geometryBuffer = renderContext->geometryBufferPool.createObject();
         GPU::GeometryBufferLayout bufferLayout;
 
@@ -103,33 +143,36 @@ public:
         Handle vaoParentCommand = cmdBuilder->buildInitializeAndSetVertexArrayCommand(vaoHandle);
 
         Handle loadCmd = cmdBuilder->buildLoadVertexArrayCommandWithParent(false,
-            SystemBuffer((void*)&onlyVertices, sizeof(float) * 3 * 3 * 2),  // two triangles
+            SystemBuffer((void*)&tri, sizeof(tri)),  // two triangles
             geometryBuffer,
             GPU::ShaderAttributeBinding::VERTICES,
             bufferLayout,
             vaoParentCommand);
-
-        CommandKey key;
         renderQueue.submit(&vaoParentCommand, &key, 1);
 
-        renderQueue.execute(*cmdBucket, *renderContext);
-        cout << "commands executed!" << endl;
+        executed += renderQueue.execute(*cmdBucket, *renderContext);
+
+        cout << "commands executed: " << executed << endl;
         cout << "qsize: " << renderQueue.numCommands() << endl;
 
         drawCmd = cmdBuilder->buildDrawArraysCommand(*renderContext->vaoPool.get(vaoHandle), drawContext);
     }
 
     void draw() {
-
-        
         CommandKey key;
-
         renderQueue.submit(&drawCmd, &key, 1);
         renderQueue.execute(*cmdBucket, *renderContext);
     }
 
     Handle drawCmd;
     GPU::DrawContext drawContext;
+
+    // shader commands
+    Handle shaderProgramHandle;
+    GPU::ShaderData vertexShaderData;
+    GPU::ShaderData fragmentShaderData;
+    Handle setShaderCmd;
+
 
     Handle vaoHandle;
     ModelManager *mgr;

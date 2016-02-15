@@ -91,6 +91,24 @@ Handle CommandBuilder::buildInitializeAndSetVertexArrayCommand(Handle &vao) {
     return initVaoCommand;
 }
 
+Handle CommandBuilder::buildSetShaderProgramCommand(GPU::ShaderProgram shaderProgram) {
+    Handle setShaderCmdHandle = cmdBucket->createCommand<SetShaderProgramCommand>(CommandKey());
+    SetShaderProgramCommand *cmd = cmdBucket->getCommandData<SetShaderProgramCommand>(setShaderCmdHandle);
+
+    cmd->shaderProgram = shaderProgram;
+    return setShaderCmdHandle;
+}
+
+Handle CommandBuilder::buildCreateShaderCommand(GPU::ShaderData vertexShader,
+    GPU::ShaderData fragmentShader,
+    Handle shaderProgram) {
+    Handle createCmdHandle = cmdBucket->createCommand<CreateShaderCommand>(CommandKey());
+    CreateShaderCommand * cmd = cmdBucket->getCommandData<CreateShaderCommand>(createCmdHandle);
+    cmd = new (cmd) CreateShaderCommand(shaderProgram, vertexShader, fragmentShader);
+    
+    return createCmdHandle;
+}
+
 
 // TODO fix these to avoid unnecessary handle usage
 //Handle CommandBuilder::buildCreateShaderCommand(Handle shaderProgram, const char * shaderSourceData, GPU::ShaderType shaderType) {

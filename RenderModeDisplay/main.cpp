@@ -101,10 +101,10 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 
         glClear(GL_COLOR_BUFFER_BIT);
         t.draw();
-        // do stuff
+
         glfwSwapBuffers(window);
         frameCounter++;
-        cout << frameCounter << endl;
+        //cout << frameCounter << endl;
     }
 
     glfwTerminate();
