@@ -45,7 +45,7 @@ public:
         Handle parentCommand);
 
     Handle buildLoadIndexArrayCommandWithParent(SystemBuffer systemBuffer, Handle geometryBuffer, Handle parentCommand);
-
+    Handle buildLoadTextureWithParent(SystemBuffer systemBuffer, GPU::TextureBufferLayout textureBufferLayout, Handle texBuffer, Handle parentCommand);
 
     Handle buildSetShaderProgramCommand(GPU::ShaderProgram shaderProgram);
     Handle buildCreateShaderCommand(GPU::ShaderData vertexShader, GPU::ShaderData fragmentShader, Handle shaderProgram);

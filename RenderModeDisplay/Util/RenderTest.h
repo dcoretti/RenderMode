@@ -80,6 +80,12 @@ float tri[]{
     0.0f,  1.0f, 0.0f,
 };
 
+float uv[] = {
+    0.0f, 0.0f,
+    1.0f, 0.0f,
+    0.0f, 1.0f
+};
+
 unsigned int triIndices[]{
     0, 1, 2
 };
@@ -98,10 +104,43 @@ char fragmentShader[] =
 "    fragColor = vec4(0.0, 1.0, 0.0, 1.0);\n"
 "}\n";
 
+
+char vertexTex[] =
+"#version 430 core\n"
+"layout(location = 0) in vec4 pos;\n"
+"layout(location = 1) in vec2 uv;\n"
+"out vec2 outUv;"
+"void main() {\n"
+"    outUv = uv;\n"
+"    gl_Position = pos;\n"
+
+"}";
+
+char fragmentTex[] =
+"#version 430 core\n"
+"out vec3 fragColor;\n"
+"in vec2 uv;\n"
+"uniform sampler2D texSampler;\n"
+"void main() {\n"
+"    fragColor = texture(texSampler, uv).rgb;"
+"}";
+
+
+int w = 4;
+int h = 4;
+// build a red RGB texture
+
+unsigned char texData[] = {
+    0xff, 0x00, 0x00,  0xff, 0x00, 0x00,  0xff, 0x00, 0x00,  0xff, 0x00, 0x00,
+    0xff, 0x00, 0x00,  0xff, 0x00, 0x00,  0xff, 0x00, 0x00,  0xff, 0x00, 0x00,
+    0xff, 0x00, 0x00,  0xff, 0x00, 0x00,  0xff, 0x00, 0x00,  0xff, 0x00, 0x00,
+    0xff, 0x00, 0x00,  0xff, 0x00, 0x00,  0xff, 0x00, 0x00,  0xff, 0x00, 0x00,
+};
+
 class RenderTest {
 public:
     RenderTest() {
-        renderContext = new RenderContext(1024, 1024, 1024, 1024, 1024, 1024, 1024, 1024);
+        renderContext = new RenderContext(1024, 1024, 1024, 1024, 1024, 1024, 1024);
         cmdBucket = new CommandBucket(100, 1024 * 1024 * 5);
         cmdBuilder = new CommandBuilder(*cmdBucket, *renderContext);
         mgr = new ModelManager(1024, 1024, cmdBuilder);
@@ -115,13 +154,13 @@ public:
         delete renderContext;
     }
 
-    int setupShaders() {
+    int setupShaders(char * vertex, char *frag) {
         int executed = 0;
         CommandKey key;
         // Load and set shader
         shaderProgramHandle = renderContext->shaderProgramsPool.createObject();
-        vertexShaderData.source = vertexShader;
-        fragmentShaderData.source = fragmentShader;
+        vertexShaderData.source = vertex;
+        fragmentShaderData.source = frag;
         //vertexShaderData.type =
         Handle loadShaderCmd = cmdBuilder->buildCreateShaderCommand(vertexShaderData, fragmentShaderData, shaderProgramHandle);
         renderQueue.submit(&loadShaderCmd, &key, 1);
@@ -140,7 +179,7 @@ public:
         cout << "starting test" << endl;
         int executed = 0;
         CommandKey key;
-        executed += setupShaders();
+        executed += setupShaders(vertexShader, fragmentShader);
 
         // load vertices
         Handle geometryBuffer = renderContext->geometryBufferPool.createObject();
@@ -172,17 +211,17 @@ public:
         cout << "starting test" << endl;
         int executed = 0;
         CommandKey key;
-        executed += setupShaders();
+        executed += setupShaders(vertexShader, fragmentShader);
 
         // load vertices
-        Handle geometryBufferHandle= renderContext->geometryBufferPool.createObject();
+        Handle geometryBufferHandle = renderContext->geometryBufferPool.createObject();
         Handle indexBufferHandle = renderContext->geometryBufferPool.createObject();
         GPU::GeometryBufferLayout bufferLayout;
 
         vaoHandle = renderContext->vaoPool.createObject();
         Handle vaoParentCommand = cmdBuilder->buildInitializeAndSetVertexArrayCommand(vaoHandle);
         Handle loadIndexCmd = cmdBuilder->buildLoadIndexArrayCommandWithParent(SystemBuffer((void*)&i, sizeof(i)),
-            indexBufferHandle, 
+            indexBufferHandle,
             vaoParentCommand);
         Handle loadVertexCmd = cmdBuilder->buildLoadVertexArrayCommandWithParent(
             SystemBuffer((void*)&v, sizeof(v)),  // two triangles
@@ -201,6 +240,61 @@ public:
         drawContext.indexOffset = 0;
         drawContext.numElements = 6;
         drawCmd = cmdBuilder->buildDrawIndexedCommand(*renderContext->vaoPool.get(vaoHandle), drawContext);
+    }
+
+
+    void texLoad() {
+        int executed = 0;
+        CommandKey key;
+        executed += setupShaders(vertexTex, fragmentTex);
+
+        // load vertices
+        Handle geometryBuffer = renderContext->geometryBufferPool.createObject();
+        GPU::GeometryBufferLayout bufferLayout;
+
+        vaoHandle = renderContext->vaoPool.createObject();
+        Handle vaoParentCommand = cmdBuilder->buildInitializeAndSetVertexArrayCommand(vaoHandle);
+
+        Handle loadCmd = cmdBuilder->buildLoadVertexArrayCommandWithParent(
+            SystemBuffer((void*)&tri, sizeof(tri)),  
+            geometryBuffer,
+            GPU::ShaderAttributeBinding::VERTICES,
+            bufferLayout,
+            vaoParentCommand);
+
+        Handle uvBuffer = renderContext->geometryBufferPool.createObject();
+        GPU::GeometryBufferLayout uvLayout;
+        uvLayout.numComponents = 2;
+        Handle loadUvCmd = cmdBuilder->buildLoadVertexArrayCommandWithParent(
+            SystemBuffer((void*)&uv, sizeof(uv)),
+            uvBuffer,
+            GPU::ShaderAttributeBinding::UV,
+            uvLayout,
+            vaoParentCommand);
+
+
+        Handle texBuffer = renderContext->geometryBufferPool.createObject();
+        GPU::TextureBufferLayout textureLayout;
+        textureLayout.width = w;
+        textureLayout.height = h;
+        textureLayout.textureFormat = GPU::TextureFormat::RGB;
+        Handle loadTexCmd = cmdBuilder->buildLoadTextureWithParent(SystemBuffer((void*)&texData, sizeof(texData)), 
+            textureLayout, 
+            texBuffer, 
+            vaoParentCommand);
+
+
+        renderQueue.submit(&vaoParentCommand, &key, 1);
+
+        executed += renderQueue.execute(*cmdBucket, *renderContext);
+
+        cout << "commands executed: " << executed << endl;
+        cout << "qsize: " << renderQueue.numCommands() << endl;
+
+        GPU::DrawContext drawContext;
+        drawContext.indexOffset = 0;
+        drawContext.numElements = 3;
+        drawCmd = cmdBuilder->buildDrawArraysCommand(*renderContext->vaoPool.get(vaoHandle), drawContext);
     }
 
     void draw() {
@@ -224,5 +318,4 @@ public:
     CommandBuilder *cmdBuilder;
     RenderContext *renderContext;
     RenderQueue renderQueue;
-
 };

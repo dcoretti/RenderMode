@@ -79,6 +79,16 @@ Handle CommandBuilder::buildLoadIndexArrayCommandWithParent(SystemBuffer systemB
     return loadIndexCmdHandle;
 }
 
+Handle CommandBuilder::buildLoadTextureWithParent(SystemBuffer systemBuffer, GPU::TextureBufferLayout textureBufferLayout, Handle textureBuffer, Handle parentCommand) {
+    Handle loadTextureCmdHandle = cmdBucket->createCommand<LoadTextureBufferCommand>(parentCommand);
+    LoadTextureBufferCommand *cmd = cmdBucket->getCommandData<LoadTextureBufferCommand>(loadTextureCmdHandle);
+
+    cmd->systemBuffer = systemBuffer;
+    cmd->textureBuffer = textureBuffer;
+    cmd->textureBufferLayout = textureBufferLayout;
+    return loadTextureCmdHandle;
+}
+
 
 Handle CommandBuilder::buildDrawArraysCommand(GPU::VertexArrayObject &vao, GPU::DrawContext &context) {
     Handle drawArrayCmdHandle = cmdBucket->createCommand<DrawVertexArrayCommand>(CommandKey());

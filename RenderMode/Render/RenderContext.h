@@ -12,7 +12,6 @@
 struct RenderContext {
     RenderContext(size_t geometryBufferPoolSize,
         size_t geometryBufferLayoutPoolSize,
-        size_t texturePoolSize,
         size_t shaderProgramsPoolSize,
         size_t materialPoolSize,
         size_t meshPoolSize,
@@ -25,7 +24,6 @@ struct RenderContext {
     IndexedPool<GPU::GeometryBuffer> geometryBufferPool;
     IndexedPool<GPU::VertexArrayObject> vaoPool;
     IndexedPool<GPU::GeometryBufferLayout> geometryBufferLayoutPool;
-    IndexedPool<GPU::Texture> texturePool;
     IndexedPool<GPU::ShaderProgram> shaderProgramsPool; // overkill with overhead?
 
     IndexedPool<Material> materialPool;

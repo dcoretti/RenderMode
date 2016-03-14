@@ -28,6 +28,29 @@ void RenderApiDispatch::loadIndexArrayBuffer(RenderContext &context, const LoadI
 
 }
 
+void RenderApiDispatch::loadTextureBuffer(RenderContext &context, const LoadTextureBufferCommand *cmd) {
+    GPU::GeometryBuffer *geometryBuffer = context.geometryBufferPool.get(cmd->textureBuffer);
+    glGenTextures(1, &geometryBuffer->bufferId);
+    glBindTexture(GL_TEXTURE_2D, geometryBuffer->bufferId);
+    // TODO use internal texture format and convert to gl format or have some sort of static mapping
+    glTexImage2D(GL_TEXTURE_2D, 
+        0, 
+        GL_RGB, 
+        cmd->textureBufferLayout.width, 
+        cmd->textureBufferLayout.height, 
+        0, 
+        GL_RGB, 
+        GL_UNSIGNED_BYTE, 
+        cmd->systemBuffer.data);
+
+    // TODO figure out something a bit more in depth here.
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+}
+
+
 //void RenderApiDispatch::enableVertexArray(RenderContext &context, const EnableVertexArrayCommand *cmd) {
 //    // TODO no longer needed???
 //}

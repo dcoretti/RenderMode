@@ -30,7 +30,7 @@ ModelManager::TextureInfo ModelManager::loadTexture(RenderContext & renderContex
 
     TextureInfo texInfo;
     texInfo.textureData = texData;
-    texInfo.textureHandle = renderContext.texturePool.createObject();
+    texInfo.textureHandle = renderContext.geometryBufferPool.createObject();
 
     texInfoByName[textureName] = texInfo;
 

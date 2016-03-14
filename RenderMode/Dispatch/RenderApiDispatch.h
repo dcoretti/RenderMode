@@ -12,7 +12,7 @@ public:
     static void initializeAndSetVertexArrayObject(RenderContext &context, const InitializeAndSetVertexArrayCommand *cmd);
     static void loadArrayBuffer(RenderContext &context, const LoadArrayBufferCommand *cmd);
     static void loadIndexArrayBuffer(RenderContext &context, const LoadIndexArrayBufferCommand *cmd);
-
+    static void loadTextureBuffer(RenderContext &context, const LoadTextureBufferCommand *cmd);
     // Draw
     //static void enableVertexArray(RenderContext &context, const EnableVertexArrayCommand *cmd);
     static void drawVertexArray(RenderContext &context, const DrawVertexArrayCommand *cmd);

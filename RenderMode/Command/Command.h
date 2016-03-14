@@ -87,6 +87,15 @@ struct SetShaderProgramCommand : public CommandData <SetShaderProgramCommand> {
 const Command::DispatchCommand CommandData<SetShaderProgramCommand>::dispatchFn = &dispatchSetShaderProgram;
 
 
+void dispatchLoadTextureBuffer(const void *data, RenderContext &context);
+struct LoadTextureBufferCommand : public CommandData<LoadTextureBufferCommand> {
+    Handle textureBuffer;   // to texture buffer id   
+    SystemBuffer systemBuffer;
+    GPU::TextureBufferLayout textureBufferLayout;
+};
+const Command::DispatchCommand CommandData<LoadTextureBufferCommand>::dispatchFn = &dispatchLoadTextureBuffer;
+
+
 // Load constant array buffer into the GPU (such as creating a GL_ARRAY_BUFFER)
 void dispatchLoadArrayBuffer(const void * data, RenderContext & context);
 struct LoadArrayBufferCommand : public CommandData<LoadArrayBufferCommand> {

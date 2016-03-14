@@ -2,17 +2,17 @@
 #include "../Dispatch/RenderApiDispatch.h"
 
 
-void dispatchSetShaderProgram(const void *data, RenderContext & context) {
+void dispatchSetShaderProgram(const void *data, RenderContext &context) {
     const SetShaderProgramCommand * cmdData = static_cast<const SetShaderProgramCommand *>(data);
     RenderApiDispatch::setShaderProgram(context, cmdData);
 }
 
-void dispatchLoadArrayBuffer(const void *data, RenderContext & context) {
+void dispatchLoadArrayBuffer(const void *data, RenderContext &context) {
     const LoadArrayBufferCommand  *cmdData = static_cast<const LoadArrayBufferCommand *>(data);
     RenderApiDispatch::loadArrayBuffer(context, cmdData);
 }
 
-void dispatchCreateShader(const void *data, RenderContext & context) {
+void dispatchCreateShader(const void *data, RenderContext &context) {
     const CreateShaderCommand *cmdData = static_cast<const CreateShaderCommand *>(data);
     RenderApiDispatch::createShader(context, cmdData);
 }
@@ -32,7 +32,12 @@ void initializeAndSetVertexArray(const void *data, RenderContext &context) {
     RenderApiDispatch::initializeAndSetVertexArrayObject(context, cmdData);
 }
 
-void dispatchLoadIndexArrayBuffer(const void * data, RenderContext & context) {
+void dispatchLoadIndexArrayBuffer(const void * data, RenderContext &context) {
     const LoadIndexArrayBufferCommand * cmdData = static_cast<const LoadIndexArrayBufferCommand *>(data);
     RenderApiDispatch::loadIndexArrayBuffer(context, cmdData);
+}
+
+void dispatchLoadTextureBuffer(const void * data, RenderContext &context) {
+    const LoadTextureBufferCommand *cmdData = static_cast<const LoadTextureBufferCommand *>(data);
+    RenderApiDispatch::loadTextureBuffer(context, cmdData);
 }
