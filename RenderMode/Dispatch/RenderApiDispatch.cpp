@@ -19,9 +19,9 @@ void RenderApiDispatch::loadArrayBuffer(RenderContext &context, const LoadArrayB
     glEnableVertexAttribArray(cmd->shaderBinding);
 }
 
-void RenderApiDispatch::loadIndexArrayBuffer(RenderContext &context, const LoadArrayBufferCommand *cmd) {
+void RenderApiDispatch::loadIndexArrayBuffer(RenderContext &context, const LoadIndexArrayBufferCommand *cmd) {
     // assumes an already bound VAO for this context
-    GPU::GeometryBuffer *geometryBuffer = context.geometryBufferPool.get(cmd->geometryBuffer);
+    GPU::GeometryBuffer *geometryBuffer = context.geometryBufferPool.get(cmd->indexGeometryBuffer);
     glGenBuffers(1, &geometryBuffer->bufferId);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, geometryBuffer->bufferId);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, cmd->systemBuffer.sizeBytes, cmd->systemBuffer.data, GL_STATIC_DRAW);
@@ -35,6 +35,12 @@ void RenderApiDispatch::loadIndexArrayBuffer(RenderContext &context, const LoadA
 void RenderApiDispatch::drawVertexArray(RenderContext &context, const DrawVertexArrayCommand *cmd) {
     glBindVertexArray(cmd->vao.vaoId);
     glDrawArrays(GL_TRIANGLES,cmd->drawContext.indexOffset, cmd->drawContext.numElements);
+    glBindVertexArray(0);
+}
+
+void RenderApiDispatch::drawIndexedVertexArray(RenderContext &context, const DrawVertexArrayCommand *cmd) {
+    glBindVertexArray(cmd->vao.vaoId);
+    glDrawElements(GL_TRIANGLES, cmd->drawContext.numElements, GL_UNSIGNED_INT, (void *) cmd->drawContext.indexOffset);
     glBindVertexArray(0);
 }
 
@@ -99,22 +105,13 @@ void RenderApiDispatch::createShader(RenderContext &context, const CreateShaderC
     glLinkProgram(shaderProgram->shaderProgramId);
     checkShaderLinkStatus(shaderProgram->shaderProgramId);
 
-    //glDetachShader(shaderProgram->shaderProgramId, shaderProgram->vertexShader);
-    //glDetachShader(shaderProgram->shaderProgramId, shaderProgram->fragmentShader);
-    //glDeleteShader(shaderProgram->vertexShader);
-    //glDeleteShader(shaderProgram->fragmentShader);
+    glDetachShader(shaderProgram->shaderProgramId, shaderProgram->vertexShader);
+    glDetachShader(shaderProgram->shaderProgramId, shaderProgram->fragmentShader);
+    glDeleteShader(shaderProgram->vertexShader);
+    glDeleteShader(shaderProgram->fragmentShader);
 }
 
 
 void RenderApiDispatch::setShaderProgram(RenderContext &context, const SetShaderProgramCommand *cmd) {
     glUseProgram(cmd->shaderProgram.shaderProgramId);
 }
-
-/*
-void RenderApiDispatch::drawIndexVertexBuffer(DrawIndexedVertexBufferCommand *cmd) {
-    //VertexBufferObject *vbo = meshPool.getData(cmd->handle);
-    //glBindVertexArray(vbo->vaoId);
-    glDrawArrays(GL_TRIANGLES, cmd->first, cmd->numVertices);
-    glBindVertexArray(0);
-}
-*/

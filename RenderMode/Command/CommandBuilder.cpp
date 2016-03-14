@@ -16,8 +16,7 @@ Handle CommandBuilder::buildLoadModelCommand(Model & model, TransientModelData &
     GPU::GeometryBufferLayout *vertexLayout = renderContext->geometryBufferLayoutPool.get(model.vertexLayout);
     vertexLayout->numComponents = modelData.vertexComponents;
 
-    Handle loadVertexHandle = buildLoadVertexArrayCommandWithParent(false,
-            modelData.vertices,
+    Handle loadVertexHandle = buildLoadVertexArrayCommandWithParent(modelData.vertices,
             model.vertices,
             GPU::ShaderAttributeBinding::VERTICES,
             *renderContext->geometryBufferLayoutPool.get(model.vertexLayout),
@@ -32,8 +31,7 @@ Handle CommandBuilder::buildLoadModelCommand(Model & model, TransientModelData &
         GPU::GeometryBufferLayout *normalsLayout = renderContext->geometryBufferLayoutPool.get(model.normalsLayout);
         normalsLayout->numComponents = modelData.normalComponents;
 
-        Handle loadNormalsHandle = buildLoadVertexArrayCommandWithParent(false,
-            modelData.normals,
+        Handle loadNormalsHandle = buildLoadVertexArrayCommandWithParent(modelData.normals,
             model.normals,
             GPU::ShaderAttributeBinding::NORMALS,
             *renderContext->geometryBufferLayoutPool.get(model.normalsLayout),
@@ -42,7 +40,7 @@ Handle CommandBuilder::buildLoadModelCommand(Model & model, TransientModelData &
     if (modelData.texCoords.data != nullptr) {
         GPU::GeometryBufferLayout *texCoordsLayout = renderContext->geometryBufferLayoutPool.get(model.texCoordsLayout);
         texCoordsLayout->numComponents = modelData.texCoordComponents;
-        Handle loadTexCoordsCommand = buildLoadVertexArrayCommandWithParent(false,
+        Handle loadTexCoordsCommand = buildLoadVertexArrayCommandWithParent(
             modelData.texCoords,
             model.texCoords,
             GPU::ShaderAttributeBinding::UV,
@@ -53,8 +51,6 @@ Handle CommandBuilder::buildLoadModelCommand(Model & model, TransientModelData &
         // TODO
     }
 
-
-
     return initVaoCmd;
 }
 
@@ -63,25 +59,43 @@ Handle CommandBuilder::buildLoadModelCommand(Model & model, TransientModelData &
 //  Mid-level transforamtion of data to commands
 //
 //
-Handle CommandBuilder::buildLoadVertexArrayCommandWithParent(bool isIndexArray,
-    SystemBuffer systemBuffer,
+Handle CommandBuilder::buildLoadVertexArrayCommandWithParent(SystemBuffer systemBuffer,
     Handle geometryBuffer,
     GPU::ShaderAttributeBinding shaderBinding,
     GPU::GeometryBufferLayout bufferLayout,
     Handle parentCommand) {
     Handle loadVertexCmdHandle = cmdBucket->createCommand<LoadArrayBufferCommand>(parentCommand);
     LoadArrayBufferCommand * cmd = cmdBucket->getCommandData<LoadArrayBufferCommand>(loadVertexCmdHandle);
-    cmd = new (cmd) LoadArrayBufferCommand(isIndexArray, systemBuffer, geometryBuffer, shaderBinding, bufferLayout);
+    cmd = new (cmd) LoadArrayBufferCommand(systemBuffer, geometryBuffer, shaderBinding, bufferLayout);
     return loadVertexCmdHandle;
 }
+
+Handle CommandBuilder::buildLoadIndexArrayCommandWithParent(SystemBuffer systemBuffer, Handle geometryBuffer, Handle parentCommand) {
+    Handle loadIndexCmdHandle = cmdBucket->createCommand<LoadIndexArrayBufferCommand>(parentCommand);
+    LoadIndexArrayBufferCommand *cmd = cmdBucket->getCommandData<LoadIndexArrayBufferCommand>(loadIndexCmdHandle);
+
+    cmd->indexGeometryBuffer = geometryBuffer;
+    cmd->systemBuffer = systemBuffer;
+    return loadIndexCmdHandle;
+}
+
 
 Handle CommandBuilder::buildDrawArraysCommand(GPU::VertexArrayObject &vao, GPU::DrawContext &context) {
     Handle drawArrayCmdHandle = cmdBucket->createCommand<DrawVertexArrayCommand>(CommandKey());
 
     DrawVertexArrayCommand *cmd = cmdBucket->getCommandData<DrawVertexArrayCommand>(drawArrayCmdHandle);
-    cmd = new (cmd) DrawVertexArrayCommand(vao, context);
+    cmd = new (cmd) DrawVertexArrayCommand(false, vao, context);
     return drawArrayCmdHandle;
 }
+
+Handle CommandBuilder::buildDrawIndexedCommand(GPU::VertexArrayObject &vao, GPU::DrawContext &indexContext) {
+    Handle drawArrayCmdHandle = cmdBucket->createCommand<DrawVertexArrayCommand>(CommandKey());
+
+    DrawVertexArrayCommand *cmd = cmdBucket->getCommandData<DrawVertexArrayCommand>(drawArrayCmdHandle);
+    cmd = new (cmd) DrawVertexArrayCommand(true, vao, indexContext);
+    return drawArrayCmdHandle;
+}
+
 
 Handle CommandBuilder::buildInitializeAndSetVertexArrayCommand(Handle &vao) {
     Handle initVaoCommand = cmdBucket->createCommand<InitializeAndSetVertexArrayCommand>(CommandKey());
@@ -108,24 +122,3 @@ Handle CommandBuilder::buildCreateShaderCommand(GPU::ShaderData vertexShader,
     
     return createCmdHandle;
 }
-
-
-// TODO fix these to avoid unnecessary handle usage
-//Handle CommandBuilder::buildCreateShaderCommand(Handle shaderProgram, const char * shaderSourceData, GPU::ShaderType shaderType) {
-//    Handle createShaderCmdHandle = cmdBucket->createCommand<CreateShaderCommand>(CommandKey());
-//    CreateShaderCommand * cmd = cmdBucket->getCommandData<CreateShaderCommand>(createShaderCmdHandle);
-//    cmd = new (cmd) CreateShaderCommand(shaderProgram, shaderSourceData, shaderType);
-//
-//    return createShaderCmdHandle;
-//}
-//
-//
-//Handle CommandBuilder::buildSetShaderProgramCommand(Handle shaderProgramHandle) {
-//    Handle setShaderCmdHandle = cmdBucket->createCommand<SetShaderProgramCommand>(CommandKey());
-//    SetShaderProgramCommand * cmd = cmdBucket->getCommandData<SetShaderProgramCommand>(setShaderCmdHandle);
-//    cmd = new (cmd) SetShaderProgramCommand(shaderProgramHandle);
-//
-//    return setShaderCmdHandle;
-//}
-//
-//

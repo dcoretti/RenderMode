@@ -19,9 +19,7 @@
         Rendering a model assumes that the Model object has been initialized by a buildLoadModelCommand type of command and 
         can use the handles to fill out a command.
 
-
     Two levels of building are done here: high level transformation of application types to commands (eg loading meshes), and mid level transformation to commands (eg loading vertex arrays)
-
 */
 class CommandBuilder {
 public:
@@ -34,23 +32,29 @@ public:
     Handle buildLoadModelCommand(Model & model, TransientModelData &modelData);
 
 
-    // Low level methods (underlying data-types and cmd definitions)
+    /*  Low level methods (underlying data-types and cmd definitions) */
+
+    // Create a VAO
     Handle buildInitializeAndSetVertexArrayCommand(Handle &vao);
 
-    Handle buildLoadVertexArrayCommandWithParent(bool isIndexArray,
-        SystemBuffer systemBuffer,
+    // Create a general vertex buffer as part of a command sequence
+    Handle buildLoadVertexArrayCommandWithParent(SystemBuffer systemBuffer,
         Handle geometryBuffer,
         GPU::ShaderAttributeBinding shaderBinding,
         GPU::GeometryBufferLayout bufferLayout,
         Handle parentCommand);
 
-    //Handle buildCreateShaderCommand(Handle shaderProgram, const char * shaderSourceData, GPU::ShaderType shaderType);
-    //Handle buildSetShaderProgramCommand(Handle shaderProgramHandle);
+    Handle buildLoadIndexArrayCommandWithParent(SystemBuffer systemBuffer, Handle geometryBuffer, Handle parentCommand);
 
-    Handle buildDrawArraysCommand(GPU::VertexArrayObject &vao, GPU::DrawContext &context);
 
     Handle buildSetShaderProgramCommand(GPU::ShaderProgram shaderProgram);
     Handle buildCreateShaderCommand(GPU::ShaderData vertexShader, GPU::ShaderData fragmentShader, Handle shaderProgram);
+
+    /* Draw Commands */
+
+    Handle buildDrawArraysCommand(GPU::VertexArrayObject &vao, GPU::DrawContext &context);
+    Handle buildDrawIndexedCommand(GPU::VertexArrayObject &vao, GPU::DrawContext &indexContext);
+
 private:
     CommandBucket *cmdBucket;
     RenderContext *renderContext;

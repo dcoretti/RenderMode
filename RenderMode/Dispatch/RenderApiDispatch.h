@@ -11,11 +11,12 @@ class RenderApiDispatch {
 public:
     static void initializeAndSetVertexArrayObject(RenderContext &context, const InitializeAndSetVertexArrayCommand *cmd);
     static void loadArrayBuffer(RenderContext &context, const LoadArrayBufferCommand *cmd);
-    static void loadIndexArrayBuffer(RenderContext &context, const LoadArrayBufferCommand *cmd);
+    static void loadIndexArrayBuffer(RenderContext &context, const LoadIndexArrayBufferCommand *cmd);
 
     // Draw
     //static void enableVertexArray(RenderContext &context, const EnableVertexArrayCommand *cmd);
     static void drawVertexArray(RenderContext &context, const DrawVertexArrayCommand *cmd);
+    static void drawIndexedVertexArray(RenderContext &context, const DrawVertexArrayCommand *cmd);
     //void drawIndexVertexBuffer(DrawIndexedVertexBufferCommand *cmd);
 
     // Shaders

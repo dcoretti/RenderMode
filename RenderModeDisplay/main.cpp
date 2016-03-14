@@ -96,13 +96,13 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
     while (!glfwWindowShouldClose(window)) {
         glfwPollEvents();
         if (!didTest) {
-            t.attemptLoadCommands();
+            t.loadIndexCommands();
+            //t.attemptLoadCommands();
             didTest = true;
         }
 
         glClear(GL_COLOR_BUFFER_BIT);
         t.draw();
-        glFlush();
         glfwSwapBuffers(window);
         frameCounter++;
         //cout << frameCounter << endl;

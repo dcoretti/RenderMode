@@ -9,11 +9,7 @@ void dispatchSetShaderProgram(const void *data, RenderContext & context) {
 
 void dispatchLoadArrayBuffer(const void *data, RenderContext & context) {
     const LoadArrayBufferCommand  *cmdData = static_cast<const LoadArrayBufferCommand *>(data);
-    if (cmdData->isIndexArray) {
-        RenderApiDispatch::loadIndexArrayBuffer(context, cmdData);
-    } else {
-        RenderApiDispatch::loadArrayBuffer(context, cmdData);
-    }
+    RenderApiDispatch::loadArrayBuffer(context, cmdData);
 }
 
 void dispatchCreateShader(const void *data, RenderContext & context) {
@@ -23,10 +19,20 @@ void dispatchCreateShader(const void *data, RenderContext & context) {
 
 void dispatchDrawVertexArray(const void *data, RenderContext &context) {
     const DrawVertexArrayCommand * cmdData = static_cast<const DrawVertexArrayCommand *>(data);
-    RenderApiDispatch::drawVertexArray(context, cmdData);
+    if (cmdData->indexed) {
+        RenderApiDispatch::drawIndexedVertexArray(context, cmdData);
+    } else {
+        RenderApiDispatch::drawVertexArray(context, cmdData);
+
+    }
 }
 
 void initializeAndSetVertexArray(const void *data, RenderContext &context) {
     const InitializeAndSetVertexArrayCommand * cmdData = static_cast<const InitializeAndSetVertexArrayCommand *>(data);
     RenderApiDispatch::initializeAndSetVertexArrayObject(context, cmdData);
+}
+
+void dispatchLoadIndexArrayBuffer(const void * data, RenderContext & context) {
+    const LoadIndexArrayBufferCommand * cmdData = static_cast<const LoadIndexArrayBufferCommand *>(data);
+    RenderApiDispatch::loadIndexArrayBuffer(context, cmdData);
 }

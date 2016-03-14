@@ -47,16 +47,17 @@ struct CommandKey {
 };
 
 
-/////////////////////////////////////
-// commands
+/////////////////////////////////////////////////////////////////////////////////////////////
+// Commands
+/////////////////////////////////////////////////////////////////////////////////////////////
 
 // Attached to 1 or more EnableVertexArrayCommands
 void dispatchDrawVertexArray(const void * data, RenderContext &context);
 struct DrawVertexArrayCommand : public CommandData <DrawVertexArrayCommand> {
-    DrawVertexArrayCommand(GPU::VertexArrayObject vao, GPU::DrawContext drawContext) :
+    DrawVertexArrayCommand(bool indexed, GPU::VertexArrayObject vao, GPU::DrawContext drawContext) :
         vao(vao), drawContext(drawContext) {}
     DrawVertexArrayCommand() = default;
-
+    bool indexed;   // if indexed, drawContext refers to the dimensions of the index array.
     GPU::DrawContext drawContext;
     GPU::VertexArrayObject vao;
 };
@@ -89,12 +90,10 @@ const Command::DispatchCommand CommandData<SetShaderProgramCommand>::dispatchFn 
 // Load constant array buffer into the GPU (such as creating a GL_ARRAY_BUFFER)
 void dispatchLoadArrayBuffer(const void * data, RenderContext & context);
 struct LoadArrayBufferCommand : public CommandData<LoadArrayBufferCommand> {
-    LoadArrayBufferCommand(bool isIndexArray,
-                           SystemBuffer systemBuffer,
+    LoadArrayBufferCommand(SystemBuffer systemBuffer,
                            Handle geometryBuffer,
                            GPU::ShaderAttributeBinding shaderBinding,
                            GPU::GeometryBufferLayout bufferLayout):
-        isIndexArray(isIndexArray),
         systemBuffer(systemBuffer),
         geometryBuffer(geometryBuffer),
         shaderBinding(shaderBinding),
@@ -102,7 +101,6 @@ struct LoadArrayBufferCommand : public CommandData<LoadArrayBufferCommand> {
 
     LoadArrayBufferCommand() = default;
 
-    bool isIndexArray;  // TODO maybe move this to a type if there is more than GL_ELEMENT_ARRAY_BUFFER, GL_ARRAY_BUFFER used
     SystemBuffer systemBuffer;  // Data stored in system memory to be loaded (move to handle once impl uses that in ModelManager)
 
     // resulting GPU id will be placed in this location by command executor. Command creator must preallocate this in a pool
@@ -112,6 +110,12 @@ struct LoadArrayBufferCommand : public CommandData<LoadArrayBufferCommand> {
 };
 const Command::DispatchCommand CommandData<LoadArrayBufferCommand>::dispatchFn = &dispatchLoadArrayBuffer;
 
+void dispatchLoadIndexArrayBuffer(const void * data, RenderContext & context);
+struct LoadIndexArrayBufferCommand : public CommandData<LoadIndexArrayBufferCommand> {
+    Handle indexGeometryBuffer; // handle to index buffer in geometry pool
+    SystemBuffer systemBuffer;
+};
+const Command::DispatchCommand CommandData<LoadIndexArrayBufferCommand>::dispatchFn = &dispatchLoadIndexArrayBuffer;
 
 void dispatchCreateShader(const void *data, RenderContext & context);
 struct CreateShaderCommand : public CommandData<CreateShaderCommand> {
@@ -124,8 +128,6 @@ struct CreateShaderCommand : public CommandData<CreateShaderCommand> {
     GPU::ShaderData fragmentShaderData;
 };
 const Command::DispatchCommand CommandData<CreateShaderCommand>::dispatchFn = &dispatchCreateShader;
-
-
 
 void initializeAndSetVertexArray(const void *data, RenderContext &context);
 struct InitializeAndSetVertexArrayCommand : public CommandData<InitializeAndSetVertexArrayCommand> {
