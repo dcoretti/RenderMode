@@ -181,11 +181,11 @@ public:
 
         vaoHandle = renderContext->vaoPool.createObject();
         Handle vaoParentCommand = cmdBuilder->buildInitializeAndSetVertexArrayCommand(vaoHandle);
-        Handle loadIndexCmd = cmdBuilder->buildLoadIndexArrayCommandWithParent(SystemBuffer((void*)&triIndices, sizeof(triIndices)),
+        Handle loadIndexCmd = cmdBuilder->buildLoadIndexArrayCommandWithParent(SystemBuffer((void*)&i, sizeof(i)),
             indexBufferHandle, 
             vaoParentCommand);
         Handle loadVertexCmd = cmdBuilder->buildLoadVertexArrayCommandWithParent(
-            SystemBuffer((void*)&tri, sizeof(tri)),  // two triangles
+            SystemBuffer((void*)&v, sizeof(v)),  // two triangles
             geometryBufferHandle,
             GPU::ShaderAttributeBinding::VERTICES,
             bufferLayout,
@@ -199,7 +199,7 @@ public:
 
         GPU::DrawContext drawContext;
         drawContext.indexOffset = 0;
-        drawContext.numElements = 3;
+        drawContext.numElements = 6;
         drawCmd = cmdBuilder->buildDrawIndexedCommand(*renderContext->vaoPool.get(vaoHandle), drawContext);
     }
 

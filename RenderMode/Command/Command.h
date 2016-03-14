@@ -55,7 +55,7 @@ struct CommandKey {
 void dispatchDrawVertexArray(const void * data, RenderContext &context);
 struct DrawVertexArrayCommand : public CommandData <DrawVertexArrayCommand> {
     DrawVertexArrayCommand(bool indexed, GPU::VertexArrayObject vao, GPU::DrawContext drawContext) :
-        vao(vao), drawContext(drawContext) {}
+        indexed(indexed), vao(vao), drawContext(drawContext) {}
     DrawVertexArrayCommand() = default;
     bool indexed;   // if indexed, drawContext refers to the dimensions of the index array.
     GPU::DrawContext drawContext;
