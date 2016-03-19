@@ -27,7 +27,7 @@ void dispatchDrawVertexArray(const void *data, RenderContext &context) {
     }
 }
 
-void initializeAndSetVertexArray(const void *data, RenderContext &context) {
+void dispatchInitializeAndSetVertexArray(const void *data, RenderContext &context) {
     const InitializeAndSetVertexArrayCommand * cmdData = static_cast<const InitializeAndSetVertexArrayCommand *>(data);
     RenderApiDispatch::initializeAndSetVertexArrayObject(context, cmdData);
 }
@@ -40,4 +40,9 @@ void dispatchLoadIndexArrayBuffer(const void * data, RenderContext &context) {
 void dispatchLoadTextureBuffer(const void * data, RenderContext &context) {
     const LoadTextureBufferCommand *cmdData = static_cast<const LoadTextureBufferCommand *>(data);
     RenderApiDispatch::loadTextureBuffer(context, cmdData);
+}
+
+void dispatchSetMatrixUniform(const void * data, RenderContext &context) {
+    const SetMatrixUniformCommand * cmdData = static_cast<const SetMatrixUniformCommand *>(data);
+    RenderApiDispatch::setMatrixUniform(context, cmdData);
 }

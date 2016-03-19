@@ -97,8 +97,8 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
         glfwPollEvents();
         if (!didTest) {
             //t.loadIndexCommands();
-            //t.attemptLoadCommands();
-            t.texLoad();
+            //t.attemptLoadCommands(true);
+            t.texLoad(true);
             didTest = true;
         }
 

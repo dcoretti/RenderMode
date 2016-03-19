@@ -110,5 +110,8 @@
     <ClInclude Include="Types\CommonTypes.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Types\Application\Camera.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

@@ -49,10 +49,12 @@ public:
 
     Handle buildSetShaderProgramCommand(GPU::ShaderProgram shaderProgram);
     Handle buildCreateShaderCommand(GPU::ShaderData vertexShader, GPU::ShaderData fragmentShader, Handle shaderProgram);
-
+    Handle buildSetMatrixUniformCommand(int shaderUniform, void* matrixData, int numMatrices);
     /* Draw Commands */
 
     Handle buildDrawArraysCommand(GPU::VertexArrayObject &vao, GPU::DrawContext &context);
+    Handle buildDrawArraysCommandWithParent(GPU::VertexArrayObject &vao, GPU::DrawContext &context, Handle parentCommand);
+
     Handle buildDrawIndexedCommand(GPU::VertexArrayObject &vao, GPU::DrawContext &indexContext);
 
 private:

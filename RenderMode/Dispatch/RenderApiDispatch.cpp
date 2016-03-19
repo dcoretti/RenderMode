@@ -44,8 +44,8 @@ void RenderApiDispatch::loadTextureBuffer(RenderContext &context, const LoadText
         cmd->systemBuffer.data);
 
     // TODO figure out something a bit more in depth here.
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 }
@@ -107,6 +107,16 @@ void checkShaderLinkStatus(unsigned int shaderProgram) {
     }
 }
 
+// TODO Make this a separate command that can include arbitrary uniforms and map to a specified value location
+void populateShaderUniformLocations(GPU::ShaderProgram * shaderProgram) {
+    shaderProgram->uniformLocations.mvp = glGetUniformLocation(shaderProgram->shaderProgramId, GPU::Uniform::mvp);
+    shaderProgram->uniformLocations.lightcolor = glGetUniformLocation(shaderProgram->shaderProgramId, GPU::Uniform::lightColor);
+    shaderProgram->uniformLocations.matAmbient = glGetUniformLocation(shaderProgram->shaderProgramId, GPU::Uniform::matAmbient);
+    shaderProgram->uniformLocations.matDiffuse = glGetUniformLocation(shaderProgram->shaderProgramId, GPU::Uniform::matDiffuse);
+    shaderProgram->uniformLocations.matSpecular = glGetUniformLocation(shaderProgram->shaderProgramId, GPU::Uniform::matSpecular);
+    shaderProgram->uniformLocations.diffuseTexture = glGetUniformLocation(shaderProgram->shaderProgramId, GPU::Uniform::diffuseTexture);
+    shaderProgram->uniformLocations.normalMapTexture = glGetUniformLocation(shaderProgram->shaderProgramId, GPU::Uniform::normalMapTexture);
+}
 
 
 void RenderApiDispatch::createShader(RenderContext &context, const CreateShaderCommand * cmd) {
@@ -132,9 +142,15 @@ void RenderApiDispatch::createShader(RenderContext &context, const CreateShaderC
     glDetachShader(shaderProgram->shaderProgramId, shaderProgram->fragmentShader);
     glDeleteShader(shaderProgram->vertexShader);
     glDeleteShader(shaderProgram->fragmentShader);
+
+    populateShaderUniformLocations(shaderProgram);
 }
 
 
 void RenderApiDispatch::setShaderProgram(RenderContext &context, const SetShaderProgramCommand *cmd) {
     glUseProgram(cmd->shaderProgram.shaderProgramId);
+}
+
+void RenderApiDispatch::setMatrixUniform(RenderContext &context, const SetMatrixUniformCommand * cmd) {
+    glUniformMatrix4fv(cmd->uniformLocation, cmd->numMatrices, cmd->transpose, (float *) cmd->matrixBuffer.data);
 }

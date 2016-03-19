@@ -22,4 +22,6 @@ public:
     // Shaders
     static void createShader(RenderContext &context, const CreateShaderCommand * cmd);
     static void setShaderProgram(RenderContext &context, const SetShaderProgramCommand *cmd);
+    static void setMatrixUniform(RenderContext &context, const SetMatrixUniformCommand * cmd);
+   
 };

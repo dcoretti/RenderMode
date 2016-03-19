@@ -7,7 +7,8 @@
 #include "Command\CommandBuilder.h"
 #include "Render\RenderContext.h"
 #include "Render\RenderQueue.h"
-
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 #include <iostream>
 using std::cout;
 using std::endl;
@@ -93,8 +94,9 @@ unsigned int triIndices[]{
 char vertexShader[] =
 "#version 430 core\n"
 "layout(location = 0) in vec4 pos;\n"
+"uniform mat4 mvp;\n"
 "void main() {\n"
-"    gl_Position = pos;\n"
+"    gl_Position = mvp * pos;\n"
 "}";
 
 char fragmentShader[] =
@@ -110,9 +112,10 @@ char vertexTex[] =
 "layout(location = 0) in vec4 pos;\n"
 "layout(location = 1) in vec2 uv;\n"
 "out vec2 outUv;"
+"uniform mat4 mvp = mat4(1.0);\n"
 "void main() {\n"
+"    gl_Position = mvp * pos;\n"
 "    outUv = uv;\n"
-"    gl_Position = pos;\n"
 
 "}";
 
@@ -131,10 +134,10 @@ int h = 4;
 // build a red RGB texture
 
 unsigned char texData[] = {
-    0xff, 0x00, 0x00,  0xff, 0x00, 0x00,  0xff, 0x00, 0x00,  0xff, 0x00, 0x00,
-    0xff, 0x00, 0x00,  0xff, 0x00, 0x00,  0xff, 0x00, 0x00,  0xff, 0x00, 0x00,
-    0xff, 0x00, 0x00,  0xff, 0x00, 0x00,  0xff, 0x00, 0x00,  0xff, 0x00, 0x00,
-    0xff, 0x00, 0x00,  0xff, 0x00, 0x00,  0xff, 0x00, 0x00,  0xff, 0x00, 0x00,
+    0xff, 0x00, 0x00,  0x00, 0x00, 0x00,  0x00, 0x00, 0x00,  0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00,  0x00, 0x00, 0x00,  0x00, 0x00, 0x00,  0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00,  0x00, 0x00, 0x00,  0xff, 0x00, 0x00,  0xff, 0x00, 0x00,
+    0x00, 0x00, 0x00,  0x00, 0x00, 0x00,  0xff, 0x00, 0x00,  0xff, 0x00, 0x00,
 };
 
 class RenderTest {
@@ -175,7 +178,7 @@ public:
         return executed;
     }
 
-    void attemptLoadCommands() {
+    void attemptLoadCommands(bool withCamera = false) {
         cout << "starting test" << endl;
         int executed = 0;
         CommandKey key;
@@ -204,7 +207,20 @@ public:
         GPU::DrawContext drawContext;
         drawContext.indexOffset = 0;
         drawContext.numElements = 3;
-        drawCmd = cmdBuilder->buildDrawArraysCommand(*renderContext->vaoPool.get(vaoHandle), drawContext);
+        if (withCamera) {
+            glm::mat4 p = glm::perspective(glm::radians(90.0f), 640.0f / 480.0f, 0.1f, 100.0f);
+            glm::mat4 m = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -2.0f));
+            glm::mat4 v = glm::lookAt(glm::vec3(0.0f, 0.0f, 3.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+
+            //glm::mat4 v = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, 10.0f));
+            mvp = p * v * m;
+            GPU::ShaderProgram *shader = renderContext->shaderProgramsPool.get(shaderProgramHandle);
+            drawCmd = cmdBuilder->buildSetMatrixUniformCommand(shader->uniformLocations.mvp, glm::value_ptr(mvp), 1);
+            cmdBuilder->buildDrawArraysCommandWithParent(*renderContext->vaoPool.get(vaoHandle), drawContext, drawCmd);
+        }
+        else {
+            drawCmd = cmdBuilder->buildDrawArraysCommand(*renderContext->vaoPool.get(vaoHandle), drawContext);
+        }
     }
 
     void loadIndexCommands() {
@@ -243,7 +259,7 @@ public:
     }
 
 
-    void texLoad() {
+    void texLoad(bool withCamera = false) {
         int executed = 0;
         CommandKey key;
         executed += setupShaders(vertexTex, fragmentTex);
@@ -294,7 +310,27 @@ public:
         GPU::DrawContext drawContext;
         drawContext.indexOffset = 0;
         drawContext.numElements = 3;
-        drawCmd = cmdBuilder->buildDrawArraysCommand(*renderContext->vaoPool.get(vaoHandle), drawContext);
+
+        if (withCamera) {
+            glm::mat4 p = glm::perspective(glm::radians(90.0f), 640.0f / 480.0f, 0.1f, 100.0f);
+            glm::mat4 m = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -2.0f));
+            glm::mat4 v = glm::lookAt(glm::vec3(0.0f, 0.0f, 3.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+
+            //glm::mat4 v = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, 10.0f));
+            mvp = p * v * m;
+            GPU::ShaderProgram *shader = renderContext->shaderProgramsPool.get(shaderProgramHandle);
+            drawCmd = cmdBuilder->buildSetMatrixUniformCommand(shader->uniformLocations.mvp, glm::value_ptr(mvp), 1);
+            cmdBuilder->buildDrawArraysCommandWithParent(*renderContext->vaoPool.get(vaoHandle), drawContext, drawCmd);
+        } else {
+            drawCmd = cmdBuilder->buildDrawArraysCommand(*renderContext->vaoPool.get(vaoHandle), drawContext);
+        }
+    }
+
+
+    void cameraTest() {
+
+
+
     }
 
     void draw() {
@@ -318,4 +354,5 @@ public:
     CommandBuilder *cmdBuilder;
     RenderContext *renderContext;
     RenderQueue renderQueue;
+    glm::mat4 mvp;
 };

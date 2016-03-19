@@ -138,8 +138,20 @@ struct CreateShaderCommand : public CommandData<CreateShaderCommand> {
 };
 const Command::DispatchCommand CommandData<CreateShaderCommand>::dispatchFn = &dispatchCreateShader;
 
-void initializeAndSetVertexArray(const void *data, RenderContext &context);
+void dispatchInitializeAndSetVertexArray(const void *data, RenderContext &context);
 struct InitializeAndSetVertexArrayCommand : public CommandData<InitializeAndSetVertexArrayCommand> {
     Handle vertexArrayObject;
 };
-const Command::DispatchCommand CommandData<InitializeAndSetVertexArrayCommand>::dispatchFn = &initializeAndSetVertexArray;
+const Command::DispatchCommand CommandData<InitializeAndSetVertexArrayCommand>::dispatchFn = &dispatchInitializeAndSetVertexArray;
+
+
+/* Shader Uniform Commands */
+void dispatchSetMatrixUniform(const void * data, RenderContext &context);
+struct SetMatrixUniformCommand : public CommandData<SetMatrixUniformCommand> {
+    SystemBuffer matrixBuffer;
+    bool transpose;
+    int numMatrices;
+    int uniformLocation;
+};
+const Command::DispatchCommand CommandData<SetMatrixUniformCommand>::dispatchFn = &dispatchSetMatrixUniform;
+

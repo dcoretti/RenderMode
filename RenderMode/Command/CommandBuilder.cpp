@@ -98,6 +98,15 @@ Handle CommandBuilder::buildDrawArraysCommand(GPU::VertexArrayObject &vao, GPU::
     return drawArrayCmdHandle;
 }
 
+Handle CommandBuilder::buildDrawArraysCommandWithParent(GPU::VertexArrayObject &vao, GPU::DrawContext &context, Handle parentCommand) {
+    Handle drawArrayCmdHandle = cmdBucket->createCommand<DrawVertexArrayCommand>(parentCommand);
+
+    DrawVertexArrayCommand *cmd = cmdBucket->getCommandData<DrawVertexArrayCommand>(drawArrayCmdHandle);
+    cmd = new (cmd) DrawVertexArrayCommand(false, vao, context);
+    return drawArrayCmdHandle;
+}
+
+
 Handle CommandBuilder::buildDrawIndexedCommand(GPU::VertexArrayObject &vao, GPU::DrawContext &indexContext) {
     Handle drawArrayCmdHandle = cmdBucket->createCommand<DrawVertexArrayCommand>(CommandKey());
 
@@ -131,4 +140,15 @@ Handle CommandBuilder::buildCreateShaderCommand(GPU::ShaderData vertexShader,
     cmd = new (cmd) CreateShaderCommand(shaderProgram, vertexShader, fragmentShader);
     
     return createCmdHandle;
+}
+
+Handle CommandBuilder::buildSetMatrixUniformCommand(int shaderUniform, void* matrixData, int numMatrices) {
+    Handle setMatrixCmdHandle = cmdBucket->createCommand<SetMatrixUniformCommand>(CommandKey());
+    SetMatrixUniformCommand * cmd = cmdBucket->getCommandData<SetMatrixUniformCommand>(setMatrixCmdHandle);
+
+    cmd->matrixBuffer = SystemBuffer(matrixData, 0);
+    cmd->uniformLocation = shaderUniform;
+    cmd->transpose = false;
+    cmd->numMatrices = numMatrices;
+    return setMatrixCmdHandle;
 }
