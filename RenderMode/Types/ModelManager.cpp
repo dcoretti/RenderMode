@@ -30,7 +30,7 @@ ModelManager::TextureInfo ModelManager::loadTexture(RenderContext & renderContex
 
     TextureInfo texInfo;
     texInfo.textureData = texData;
-    texInfo.textureHandle = renderContext.geometryBufferPool.createObject();
+    texInfo.textureHandle = renderContext.bufferObjectPool.createObject();
 
     texInfoByName[textureName] = texInfo;
 
@@ -149,10 +149,10 @@ Handle ModelManager::loadModel(std::string fname, RenderContext &renderContext) 
     Model *model = renderContext.modelPool.get(modelHandle);
     // Preallocate space for graphics API handle to GPU buffer that render engine can populate on load commands.
     model->vao = renderContext.vaoPool.createObject();
-    model->vertices = renderContext.geometryBufferPool.createObject();
-    model->texCoords = renderContext.geometryBufferPool.createObject();
-    model->normals = renderContext.geometryBufferPool.createObject();
-    model->indices = renderContext.geometryBufferPool.createObject();
+    model->vertices = renderContext.bufferObjectPool.createObject();
+    model->texCoords = renderContext.bufferObjectPool.createObject();
+    model->normals = renderContext.bufferObjectPool.createObject();
+    model->indices = renderContext.bufferObjectPool.createObject();
 
     model->vertexLayout = renderContext.geometryBufferLayoutPool.createObject();
     model->normalsLayout = renderContext.geometryBufferLayoutPool.createObject();

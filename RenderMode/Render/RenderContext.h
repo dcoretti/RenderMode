@@ -10,7 +10,7 @@
 
 // All pooled data the rendering engine has access to.
 struct RenderContext {
-    RenderContext(size_t geometryBufferPoolSize,
+    RenderContext(size_t bufferObjectPoolSize,
         size_t geometryBufferLayoutPoolSize,
         size_t shaderProgramsPoolSize,
         size_t materialPoolSize,
@@ -21,7 +21,7 @@ struct RenderContext {
 
     // All Vertex, normal, texCoords allocated here.  TODO type handles to allow separate pools.
     // Right now this is the only way we can get the render engine to know where to put the id it generates
-    IndexedPool<GPU::GeometryBuffer> geometryBufferPool;
+    IndexedPool<GPU::BufferObject> bufferObjectPool;
     IndexedPool<GPU::VertexArrayObject> vaoPool;
     IndexedPool<GPU::GeometryBufferLayout> geometryBufferLayoutPool;
     IndexedPool<GPU::ShaderProgram> shaderProgramsPool; // overkill with overhead?

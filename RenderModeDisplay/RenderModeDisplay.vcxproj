@@ -29,6 +29,10 @@
       <Project>{8b768547-5b8b-4bbc-abc6-a8abae39747c}</Project>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="Util\Lighting.frag" />
+    <None Include="Util\Lighting.vert" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{E15DD6E5-3EBC-456D-9B14-FED7DCB81E49}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>

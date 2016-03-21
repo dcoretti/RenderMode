@@ -16,7 +16,6 @@ public:
     // cannot be called once sorting is done.
     template <typename CommandDataType> Handle createCommand(CommandKey key);
     template <typename CommandDataType> Handle createCommand(Handle parentCommand);
-
     template <typename CommandDataType> CommandDataType* getCommandData(Handle handle);
 
     void * getDataFromCommand(Command * cmd);   // TODO this is a bit clunky...
@@ -51,7 +50,6 @@ template <typename CommandDataType> Handle CommandBucket::createCommandAndData()
     return commandHandle;
 }
 
-
 template <typename CommandDataType> CommandDataType* CommandBucket::getCommandData(Handle handle) {
     void * data =commandIndex->get(handle);
     Command *cmd = static_cast<Command*>(data);
@@ -62,7 +60,6 @@ template <typename CommandDataType> CommandDataType* CommandBucket::getCommandDa
     void *cmdDataPtr = ((char *)data) + sizeof(Command);
     return static_cast<CommandDataType*>(cmdDataPtr);
 }
-
 
 template <typename CommandDataType> Handle CommandBucket::createCommand(CommandKey key) {
     // Command data expected layout

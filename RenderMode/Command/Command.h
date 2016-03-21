@@ -148,10 +148,43 @@ const Command::DispatchCommand CommandData<InitializeAndSetVertexArrayCommand>::
 /* Shader Uniform Commands */
 void dispatchSetMatrixUniform(const void * data, RenderContext &context);
 struct SetMatrixUniformCommand : public CommandData<SetMatrixUniformCommand> {
-    SystemBuffer matrixBuffer;
+    float *matrix;
     bool transpose;
     int numMatrices;
     int uniformLocation;
 };
 const Command::DispatchCommand CommandData<SetMatrixUniformCommand>::dispatchFn = &dispatchSetMatrixUniform;
 
+void dispatchSetVec3UniformCommand(const void * data, RenderContext &context);
+struct SetVec3UniformCommand : public CommandData<SetVec3UniformCommand> {
+    float x, y, z;
+    int uniformLocation;
+};
+const Command::DispatchCommand CommandData<SetVec3UniformCommand>::dispatchFn = &dispatchSetVec3UniformCommand;
+
+void dispatchSetFloatUniformCommand(const void * data, RenderContext &context);
+struct SetFloatUniformCommand : public CommandData<SetFloatUniformCommand> {
+    float * vals;
+    int count;
+    int uniformLocation;
+};
+const Command::DispatchCommand CommandData<SetFloatUniformCommand>::dispatchFn = &dispatchSetFloatUniformCommand;
+
+
+void dispatchInitializeUniformBuffer(const void * data, RenderContext &context);
+struct InitializeUniformBufferCommand : public CommandData<InitializeUniformBufferCommand> {
+    Handle uboHandle;
+    size_t bufferSize;
+    void * data;    // optional.  If set later during a mapBuffer command can be null.
+    int bufferBlockBinding;
+};
+const Command::DispatchCommand CommandData<InitializeUniformBufferCommand>::dispatchFn = &dispatchInitializeUniformBuffer;
+
+void dispatchUpdateUniformBuffer(const void *data, RenderContext &context);
+struct UpdateUniformBufferCommand : public CommandData<UpdateUniformBufferCommand> {
+    Handle uboHandle;
+    void * data;
+    size_t bufferSize;
+    size_t offset;
+};
+const Command::DispatchCommand CommandData<UpdateUniformBufferCommand>::dispatchFn = &dispatchUpdateUniformBuffer;

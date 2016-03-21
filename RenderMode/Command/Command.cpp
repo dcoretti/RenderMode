@@ -46,3 +46,23 @@ void dispatchSetMatrixUniform(const void * data, RenderContext &context) {
     const SetMatrixUniformCommand * cmdData = static_cast<const SetMatrixUniformCommand *>(data);
     RenderApiDispatch::setMatrixUniform(context, cmdData);
 }
+
+void dispatchSetVec3UniformCommand(const void * data, RenderContext &context) {
+    const SetVec3UniformCommand * cmdData = static_cast<const SetVec3UniformCommand *>(data);
+    RenderApiDispatch::setVec3FloatUniform(context, cmdData);
+}
+
+void dispatchSetFloatUniformCommand(const void * data, RenderContext &context) {
+    const SetFloatUniformCommand * cmdData = static_cast<const SetFloatUniformCommand *>(data);
+    RenderApiDispatch::setFloatUniform(context, cmdData);
+}
+
+void dispatchInitializeUniformBuffer(const void * data, RenderContext &context) {
+    const InitializeUniformBufferCommand * cmdData = static_cast<const InitializeUniformBufferCommand *>(data);
+    RenderApiDispatch::initializeUniformBuffer(context, cmdData);
+}
+
+void dispatchUpdateUniformBuffer(const void *data, RenderContext &context) {
+    const UpdateUniformBufferCommand * cmdData = static_cast<const UpdateUniformBufferCommand *>(data);
+    RenderApiDispatch::updateUniformBuffer(context, cmdData);
+}

@@ -1,9 +1,9 @@
 #include "CommandBuilder.h"
 #include "../Types/Application/Mesh.h"
 
-//////////////////////////////////////////////////////////////////////////////////////
-//  High-level transformation
-//  
+/*
+    High-level transformation (model->commands)
+*/  
 
 Handle CommandBuilder::buildDrawModelCommand(const Model & mesh) {
     return Handle();
@@ -54,11 +54,9 @@ Handle CommandBuilder::buildLoadModelCommand(Model & model, TransientModelData &
     return initVaoCmd;
 }
 
-
-//////////////////////////////////////////////////////////////////////////////////////
-//  Mid-level transforamtion of data to commands
-//
-//
+/*
+  Mid-level transforamtion of data to commands (buffers and layouts -> commands)
+*/
 Handle CommandBuilder::buildLoadVertexArrayCommandWithParent(SystemBuffer systemBuffer,
     Handle geometryBuffer,
     GPU::ShaderAttributeBinding shaderBinding,
@@ -142,13 +140,70 @@ Handle CommandBuilder::buildCreateShaderCommand(GPU::ShaderData vertexShader,
     return createCmdHandle;
 }
 
-Handle CommandBuilder::buildSetMatrixUniformCommand(int shaderUniform, void* matrixData, int numMatrices) {
-    Handle setMatrixCmdHandle = cmdBucket->createCommand<SetMatrixUniformCommand>(CommandKey());
+Handle CommandBuilder::buildSetMatrixUniformCommand(int shaderUniform, float* matrixData, int numMatrices, Handle parent) {
+    Handle setMatrixCmdHandle;
+    if (parent.isValidHandle()) {
+        setMatrixCmdHandle = cmdBucket->createCommand<SetMatrixUniformCommand>(parent);
+    } else {
+        setMatrixCmdHandle = cmdBucket->createCommand<SetMatrixUniformCommand>(CommandKey());
+    }
     SetMatrixUniformCommand * cmd = cmdBucket->getCommandData<SetMatrixUniformCommand>(setMatrixCmdHandle);
 
-    cmd->matrixBuffer = SystemBuffer(matrixData, 0);
+    cmd->matrix = matrixData;
     cmd->uniformLocation = shaderUniform;
     cmd->transpose = false;
     cmd->numMatrices = numMatrices;
     return setMatrixCmdHandle;
+}
+
+Handle CommandBuilder::buildSetVec3UniformCommand(int shaderUniform, float x, float y, float z, Handle parent) {
+    Handle vec3UniformHandle;
+    if (parent.isValidHandle()) {
+        vec3UniformHandle = cmdBucket->createCommand<SetVec3UniformCommand>(parent);
+    } else {
+        vec3UniformHandle = cmdBucket->createCommand<SetVec3UniformCommand>(CommandKey());
+    }
+    SetVec3UniformCommand *cmd = cmdBucket->getCommandData<SetVec3UniformCommand>(vec3UniformHandle);
+    cmd->uniformLocation = shaderUniform;
+    cmd->x = x;
+    cmd->y = y;
+    cmd->z = z;
+    return vec3UniformHandle;
+}
+
+Handle CommandBuilder::buildSetFloatUniformCommand(int shaderUniform, float *vals, int count, Handle parent) {
+    Handle floatUniformHandle;
+    if (parent.isValidHandle()) {
+        floatUniformHandle = cmdBucket->createCommand<SetFloatUniformCommand>(parent);
+    } else {
+        floatUniformHandle = cmdBucket->createCommand<SetFloatUniformCommand>(CommandKey());
+    }
+    SetFloatUniformCommand *cmd = cmdBucket->getCommandData<SetFloatUniformCommand>(floatUniformHandle);
+    cmd->uniformLocation = shaderUniform;
+    cmd->vals = vals;
+    cmd->count = count;
+    return floatUniformHandle;
+}
+
+Handle CommandBuilder::buildUpdateUniformBufferCommand(Handle uboHandle, void * data, size_t bufferSize, size_t offset, Handle parent) {
+    Handle updateUniformHandle = cmdBucket->createCommand<UpdateUniformBufferCommand>(parent);
+    UpdateUniformBufferCommand *cmd = cmdBucket->getCommandData<UpdateUniformBufferCommand>(updateUniformHandle);
+
+    cmd->uboHandle = uboHandle;
+    cmd->data = data;
+    cmd->bufferSize = bufferSize;
+    cmd->offset = offset;
+    return updateUniformHandle;
+}
+
+Handle CommandBuilder::buildCreateUniformBufferCommand(Handle uboHandle, size_t bufferSize, void * data, int bufferBlockBinding, Handle parent) {
+    Handle createUniformHandle = cmdBucket->createCommand<InitializeUniformBufferCommand>(parent);
+    InitializeUniformBufferCommand *cmd = cmdBucket->getCommandData<InitializeUniformBufferCommand>(createUniformHandle);
+
+    cmd->uboHandle = uboHandle;
+    cmd->data = data;
+    cmd->bufferSize = bufferSize;
+    cmd->bufferBlockBinding = bufferBlockBinding;
+
+    return createUniformHandle;
 }

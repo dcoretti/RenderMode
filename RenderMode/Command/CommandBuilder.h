@@ -3,7 +3,6 @@
 
 #include "../Types/Application/Model.h"
 #include "../Types/Application/TransientModelData.h"
-
 // TODO include key generation
 
 /*
@@ -26,16 +25,14 @@ public:
     CommandBuilder(CommandBucket &cmdBucket, RenderContext &renderContext) 
         : cmdBucket(&cmdBucket), renderContext(&renderContext) { }
 
-    // Public api level methods (models, meshes)
-    // TODO add sort key as param here?
+    /* Public api level methods (models, meshes) */
     Handle buildDrawModelCommand(const Model & mesh);
     Handle buildLoadModelCommand(Model & model, TransientModelData &modelData);
 
-
     /*  Low level methods (underlying data-types and cmd definitions) */
 
-    // Create a VAO
-    Handle buildInitializeAndSetVertexArrayCommand(Handle &vao);
+
+    Handle buildInitializeAndSetVertexArrayCommand(Handle &vao); // vao creation
 
     // Create a general vertex buffer as part of a command sequence
     Handle buildLoadVertexArrayCommandWithParent(SystemBuffer systemBuffer,
@@ -47,16 +44,19 @@ public:
     Handle buildLoadIndexArrayCommandWithParent(SystemBuffer systemBuffer, Handle geometryBuffer, Handle parentCommand);
     Handle buildLoadTextureWithParent(SystemBuffer systemBuffer, GPU::TextureBufferLayout textureBufferLayout, Handle texBuffer, Handle parentCommand);
 
+    /* Shader Commands */
     Handle buildSetShaderProgramCommand(GPU::ShaderProgram shaderProgram);
     Handle buildCreateShaderCommand(GPU::ShaderData vertexShader, GPU::ShaderData fragmentShader, Handle shaderProgram);
-    Handle buildSetMatrixUniformCommand(int shaderUniform, void* matrixData, int numMatrices);
-    /* Draw Commands */
+    Handle buildSetMatrixUniformCommand(int shaderUniform, float* matrixData, int numMatrices, Handle parent = Handle());
+    Handle buildSetVec3UniformCommand(int shaderUniform, float x, float y, float z, Handle parent = Handle());
+    Handle buildSetFloatUniformCommand(int shaderUniform, float *vals, int count, Handle parent = Handle());
+    Handle buildUpdateUniformBufferCommand(Handle uboHandle, void * data, size_t bufferSize, size_t offset, Handle parent);
+    Handle buildCreateUniformBufferCommand(Handle uboHandle, size_t bufferSize, void * data,  int bufferBlockBinding, Handle parent);
 
+    /* Draw Commands */
     Handle buildDrawArraysCommand(GPU::VertexArrayObject &vao, GPU::DrawContext &context);
     Handle buildDrawArraysCommandWithParent(GPU::VertexArrayObject &vao, GPU::DrawContext &context, Handle parentCommand);
-
     Handle buildDrawIndexedCommand(GPU::VertexArrayObject &vao, GPU::DrawContext &indexContext);
-
 private:
     CommandBucket *cmdBucket;
     RenderContext *renderContext;

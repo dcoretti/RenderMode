@@ -14,13 +14,20 @@
     TODO - add some sort of type or other safety to prevent handles from one pool being used on another accidentally.
     Right now that is owned by the IndexedPool, which returns only one type of data no matter the handle.
 */
+static const unsigned int defaultHandleBaseVersion = 1;
+
+
 struct Handle {
     // TODO use variable bit size of index/version depending on type?
     unsigned int index;
     unsigned short version;
+
+
+    bool isValidHandle() {
+        return version >= defaultHandleBaseVersion;
+    }
 };
 
-const unsigned int defaultHandleBaseVersion = 1;
 
 static_assert(std::is_trivial<Handle>::value, "Handle must be trivial!");
 static_assert(std::is_standard_layout<Handle>::value, "Handle must be a std layout!");

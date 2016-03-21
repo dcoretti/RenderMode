@@ -10,6 +10,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <iostream>
+#include <fstream>
 using std::cout;
 using std::endl;
 
@@ -81,6 +82,12 @@ float tri[]{
     0.0f,  1.0f, 0.0f,
 };
 
+float triNorm[]{
+    0.0f, 0.0f, 1.0f,
+    0.0f, 0.0f, 1.0f,
+    0.0f, 0.0f, 1.0f,
+};
+
 float uv[] = {
     0.0f, 0.0f,
     1.0f, 0.0f,
@@ -107,28 +114,6 @@ char fragmentShader[] =
 "}\n";
 
 
-char vertexTex[] =
-"#version 430 core\n"
-"layout(location = 0) in vec4 pos;\n"
-"layout(location = 1) in vec2 uv;\n"
-"out vec2 outUv;"
-"uniform mat4 mvp = mat4(1.0);\n"
-"void main() {\n"
-"    gl_Position = mvp * pos;\n"
-"    outUv = uv;\n"
-
-"}";
-
-char fragmentTex[] =
-"#version 430 core\n"
-"out vec3 fragColor;\n"
-"in vec2 uv;\n"
-"uniform sampler2D texSampler;\n"
-"void main() {\n"
-"    fragColor = texture(texSampler, uv).rgb;"
-"}";
-
-
 int w = 4;
 int h = 4;
 // build a red RGB texture
@@ -139,6 +124,22 @@ unsigned char texData[] = {
     0x00, 0x00, 0x00,  0x00, 0x00, 0x00,  0xff, 0x00, 0x00,  0xff, 0x00, 0x00,
     0x00, 0x00, 0x00,  0x00, 0x00, 0x00,  0xff, 0x00, 0x00,  0xff, 0x00, 0x00,
 };
+
+
+void loadTextFile(char * fname, std::string &loadedFile) {
+    std::ifstream file(fname);
+    if (!file) {
+        cout << "unable to find file!" << endl;
+        return;
+    }
+
+    std::string line;
+    while (std::getline(file, line)) {
+        loadedFile += line;
+        loadedFile.push_back('\n');
+    }
+    cout << fname << ": file loaded." << endl;
+}
 
 class RenderTest {
 public:
@@ -157,7 +158,7 @@ public:
         delete renderContext;
     }
 
-    int setupShaders(char * vertex, char *frag) {
+    int setupShaders(const char * vertex,const char *frag, bool setupUBO = false) {
         int executed = 0;
         CommandKey key;
         // Load and set shader
@@ -166,6 +167,29 @@ public:
         fragmentShaderData.source = frag;
         //vertexShaderData.type =
         Handle loadShaderCmd = cmdBuilder->buildCreateShaderCommand(vertexShaderData, fragmentShaderData, shaderProgramHandle);
+        if (setupUBO) {
+            light.location = glm::vec3(1.0f);//glm::vec3(0.0f, 5.0f, 1.0f);
+            light.diffuse = glm::vec3(1.0f);//glm::vec3(1.0f, 0.0f, 0.0f);
+            light.specular = glm::vec3(1.0f);//glm::vec3(0.0f, 1.0f, 0.0f);
+
+            material.ambient = glm::vec3(1.0f);
+            material.diffuse = glm::vec3(1.0f);
+            material.specular = glm::vec3(1.0f);
+
+            lightUbo = renderContext->bufferObjectPool.createObject();
+            materialUbo = renderContext->bufferObjectPool.createObject();
+            cmdBuilder->buildCreateUniformBufferCommand(lightUbo, 
+                sizeof(GPU::Uniform::LightSource), 
+                (void *)0, 
+                GPU::Uniform::defaultLightSourceUniformBlockBinding, 
+                loadShaderCmd);
+            cmdBuilder->buildCreateUniformBufferCommand(materialUbo,
+                sizeof(GPU::Uniform::Material),
+                (void *)0,
+                GPU::Uniform::defaultMaterialUniformBlockBinding,
+                loadShaderCmd);
+        }
+
         renderQueue.submit(&loadShaderCmd, &key, 1);
 
         executed += renderQueue.execute(*cmdBucket, *renderContext);
@@ -173,6 +197,8 @@ public:
 
         GPU::ShaderProgram *shader = renderContext->shaderProgramsPool.get(shaderProgramHandle);
         setShaderCmd = cmdBuilder->buildSetShaderProgramCommand(*shader);
+
+
         renderQueue.submit(&setShaderCmd, &key, 1);
 
         return executed;
@@ -185,7 +211,7 @@ public:
         executed += setupShaders(vertexShader, fragmentShader);
 
         // load vertices
-        Handle geometryBuffer = renderContext->geometryBufferPool.createObject();
+        Handle geometryBuffer = renderContext->bufferObjectPool.createObject();
         GPU::GeometryBufferLayout bufferLayout;
 
         vaoHandle = renderContext->vaoPool.createObject();
@@ -209,11 +235,9 @@ public:
         drawContext.numElements = 3;
         if (withCamera) {
             glm::mat4 p = glm::perspective(glm::radians(90.0f), 640.0f / 480.0f, 0.1f, 100.0f);
-            glm::mat4 m = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -2.0f));
             glm::mat4 v = glm::lookAt(glm::vec3(0.0f, 0.0f, 3.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+            m = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -2.0f));
 
-            //glm::mat4 v = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, 10.0f));
-            mvp = p * v * m;
             GPU::ShaderProgram *shader = renderContext->shaderProgramsPool.get(shaderProgramHandle);
             drawCmd = cmdBuilder->buildSetMatrixUniformCommand(shader->uniformLocations.mvp, glm::value_ptr(mvp), 1);
             cmdBuilder->buildDrawArraysCommandWithParent(*renderContext->vaoPool.get(vaoHandle), drawContext, drawCmd);
@@ -230,8 +254,8 @@ public:
         executed += setupShaders(vertexShader, fragmentShader);
 
         // load vertices
-        Handle geometryBufferHandle = renderContext->geometryBufferPool.createObject();
-        Handle indexBufferHandle = renderContext->geometryBufferPool.createObject();
+        Handle geometryBufferHandle = renderContext->bufferObjectPool.createObject();
+        Handle indexBufferHandle = renderContext->bufferObjectPool.createObject();
         GPU::GeometryBufferLayout bufferLayout;
 
         vaoHandle = renderContext->vaoPool.createObject();
@@ -259,13 +283,18 @@ public:
     }
 
 
-    void texLoad(bool withCamera = false) {
+    void texLoad(bool withCamera = false, bool withLight = false) {
         int executed = 0;
         CommandKey key;
-        executed += setupShaders(vertexTex, fragmentTex);
+
+        std::string vertTex;
+        std::string fragTex;
+        loadTextFile("Util/Lighting.vert", vertTex);
+        loadTextFile("Util/Lighting.frag", fragTex);
+        executed += setupShaders(vertTex.c_str(), fragTex.c_str(), true);
 
         // load vertices
-        Handle geometryBuffer = renderContext->geometryBufferPool.createObject();
+        Handle geometryBuffer = renderContext->bufferObjectPool.createObject();
         GPU::GeometryBufferLayout bufferLayout;
 
         vaoHandle = renderContext->vaoPool.createObject();
@@ -278,7 +307,7 @@ public:
             bufferLayout,
             vaoParentCommand);
 
-        Handle uvBuffer = renderContext->geometryBufferPool.createObject();
+        Handle uvBuffer = renderContext->bufferObjectPool.createObject();
         GPU::GeometryBufferLayout uvLayout;
         uvLayout.numComponents = 2;
         Handle loadUvCmd = cmdBuilder->buildLoadVertexArrayCommandWithParent(
@@ -288,8 +317,17 @@ public:
             uvLayout,
             vaoParentCommand);
 
+        Handle normalBuffer = renderContext->bufferObjectPool.createObject();
+        GPU::GeometryBufferLayout normalLayout;
+        normalLayout.numComponents = 3;
+        Handle loadNormalsCmd = cmdBuilder->buildLoadVertexArrayCommandWithParent(
+            SystemBuffer((void *)&triNorm, sizeof(triNorm)),
+            normalBuffer,
+            GPU::ShaderAttributeBinding::NORMALS,
+            normalLayout,
+            vaoParentCommand);
 
-        Handle texBuffer = renderContext->geometryBufferPool.createObject();
+        Handle texBuffer = renderContext->bufferObjectPool.createObject();
         GPU::TextureBufferLayout textureLayout;
         textureLayout.width = w;
         textureLayout.height = h;
@@ -311,19 +349,30 @@ public:
         drawContext.indexOffset = 0;
         drawContext.numElements = 3;
 
+        // TODO move this junk to just be single commands rather than growing this list..
         if (withCamera) {
             glm::mat4 p = glm::perspective(glm::radians(90.0f), 640.0f / 480.0f, 0.1f, 100.0f);
-            glm::mat4 m = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -2.0f));
-            glm::mat4 v = glm::lookAt(glm::vec3(0.0f, 0.0f, 3.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-
-            //glm::mat4 v = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, 10.0f));
+            m = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -2.0f));
+            v = glm::lookAt(glm::vec3(0.0f, 0.0f, 3.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
             mvp = p * v * m;
+            mv = v * m;
+
             GPU::ShaderProgram *shader = renderContext->shaderProgramsPool.get(shaderProgramHandle);
             drawCmd = cmdBuilder->buildSetMatrixUniformCommand(shader->uniformLocations.mvp, glm::value_ptr(mvp), 1);
+            cmdBuilder->buildSetMatrixUniformCommand(shader->uniformLocations.mv, glm::value_ptr(mv), 1, drawCmd);
+            cmdBuilder->buildSetMatrixUniformCommand(shader->uniformLocations.v, glm::value_ptr(v), 1, drawCmd);
+            cmdBuilder->buildSetMatrixUniformCommand(shader->uniformLocations.m, glm::value_ptr(m), 1, drawCmd);
+            if (withLight) {
+                cmdBuilder->buildUpdateUniformBufferCommand(lightUbo, (void*)&material, sizeof(GPU::Uniform::Material), 0, drawCmd);
+                cmdBuilder->buildUpdateUniformBufferCommand(lightUbo, (void*)&light, sizeof(GPU::Uniform::LightSource), 0, drawCmd);
+            }
+
             cmdBuilder->buildDrawArraysCommandWithParent(*renderContext->vaoPool.get(vaoHandle), drawContext, drawCmd);
         } else {
             drawCmd = cmdBuilder->buildDrawArraysCommand(*renderContext->vaoPool.get(vaoHandle), drawContext);
         }
+
+
     }
 
 
@@ -346,6 +395,10 @@ public:
     GPU::ShaderData vertexShaderData;
     GPU::ShaderData fragmentShaderData;
     Handle setShaderCmd;
+    Handle lightUbo;
+    Handle materialUbo;
+    GPU::Uniform::LightSource light;
+    GPU::Uniform::Material material;
 
 
     Handle vaoHandle;
@@ -354,5 +407,9 @@ public:
     CommandBuilder *cmdBuilder;
     RenderContext *renderContext;
     RenderQueue renderQueue;
+
+    glm::mat4 m;
+    glm::mat4 v;
+    glm::mat4 mv;
     glm::mat4 mvp;
 };

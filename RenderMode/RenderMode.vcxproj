@@ -159,7 +159,7 @@
     <ClInclude Include="Memory\SparseArray.h" />
     <ClInclude Include="Render\RenderContext.h" />
     <ClInclude Include="Render\RenderQueue.h" />
-    <ClInclude Include="Types\Application\Camera.h" />
+    <ClInclude Include="Types\Application\LightSource.h" />
     <ClInclude Include="Types\Application\TransientModelData.h" />
     <ClInclude Include="Types\CommonTypes.h" />
     <ClInclude Include="Types\GPU\GeometryTypes.h" />

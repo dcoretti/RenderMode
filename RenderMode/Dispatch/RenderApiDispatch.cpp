@@ -5,7 +5,7 @@
 void RenderApiDispatch::loadArrayBuffer(RenderContext &context, const LoadArrayBufferCommand *cmd) {
     // assumes an already bound VAO for this context
 
-    GPU::GeometryBuffer *geometryBuffer = context.geometryBufferPool.get(cmd->geometryBuffer);
+    GPU::BufferObject *geometryBuffer = context.bufferObjectPool.get(cmd->geometryBuffer);
     glGenBuffers(1, &geometryBuffer->bufferId);
     glBindBuffer(GL_ARRAY_BUFFER, geometryBuffer->bufferId);
     glBufferData(GL_ARRAY_BUFFER, cmd->systemBuffer.sizeBytes, cmd->systemBuffer.data, GL_STATIC_DRAW);
@@ -21,7 +21,7 @@ void RenderApiDispatch::loadArrayBuffer(RenderContext &context, const LoadArrayB
 
 void RenderApiDispatch::loadIndexArrayBuffer(RenderContext &context, const LoadIndexArrayBufferCommand *cmd) {
     // assumes an already bound VAO for this context
-    GPU::GeometryBuffer *geometryBuffer = context.geometryBufferPool.get(cmd->indexGeometryBuffer);
+    GPU::BufferObject *geometryBuffer = context.bufferObjectPool.get(cmd->indexGeometryBuffer);
     glGenBuffers(1, &geometryBuffer->bufferId);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, geometryBuffer->bufferId);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, cmd->systemBuffer.sizeBytes, cmd->systemBuffer.data, GL_STATIC_DRAW);
@@ -29,7 +29,7 @@ void RenderApiDispatch::loadIndexArrayBuffer(RenderContext &context, const LoadI
 }
 
 void RenderApiDispatch::loadTextureBuffer(RenderContext &context, const LoadTextureBufferCommand *cmd) {
-    GPU::GeometryBuffer *geometryBuffer = context.geometryBufferPool.get(cmd->textureBuffer);
+    GPU::BufferObject *geometryBuffer = context.bufferObjectPool.get(cmd->textureBuffer);
     glGenTextures(1, &geometryBuffer->bufferId);
     glBindTexture(GL_TEXTURE_2D, geometryBuffer->bufferId);
     // TODO use internal texture format and convert to gl format or have some sort of static mapping
@@ -63,7 +63,7 @@ void RenderApiDispatch::drawVertexArray(RenderContext &context, const DrawVertex
 
 void RenderApiDispatch::drawIndexedVertexArray(RenderContext &context, const DrawVertexArrayCommand *cmd) {
     glBindVertexArray(cmd->vao.vaoId);
-    glDrawElements(GL_TRIANGLES, cmd->drawContext.numElements, GL_UNSIGNED_INT, (void *) cmd->drawContext.indexOffset);
+    glDrawElements(GL_TRIANGLES, cmd->drawContext.numElements, GL_UNSIGNED_INT, (void *) 0);
     glBindVertexArray(0);
 }
 
@@ -107,15 +107,41 @@ void checkShaderLinkStatus(unsigned int shaderProgram) {
     }
 }
 
+void parseError(const char * msg) {
+    GLenum errCode;
+    const GLubyte *errString;
+    if ((errCode = glGetError()) != GL_NO_ERROR) {
+        cout << msg << " " << glGetError() << endl;
+    }
+}
 // TODO Make this a separate command that can include arbitrary uniforms and map to a specified value location
 void populateShaderUniformLocations(GPU::ShaderProgram * shaderProgram) {
+    // single uniforms
+    parseError("mvp");
     shaderProgram->uniformLocations.mvp = glGetUniformLocation(shaderProgram->shaderProgramId, GPU::Uniform::mvp);
-    shaderProgram->uniformLocations.lightcolor = glGetUniformLocation(shaderProgram->shaderProgramId, GPU::Uniform::lightColor);
-    shaderProgram->uniformLocations.matAmbient = glGetUniformLocation(shaderProgram->shaderProgramId, GPU::Uniform::matAmbient);
-    shaderProgram->uniformLocations.matDiffuse = glGetUniformLocation(shaderProgram->shaderProgramId, GPU::Uniform::matDiffuse);
-    shaderProgram->uniformLocations.matSpecular = glGetUniformLocation(shaderProgram->shaderProgramId, GPU::Uniform::matSpecular);
+    parseError("mvp");
+    shaderProgram->uniformLocations.mv = glGetUniformLocation(shaderProgram->shaderProgramId, GPU::Uniform::mv);
+    parseError("mv");
+    shaderProgram->uniformLocations.v = glGetUniformLocation(shaderProgram->shaderProgramId, GPU::Uniform::v);
+    parseError("v");
+    shaderProgram->uniformLocations.m = glGetUniformLocation(shaderProgram->shaderProgramId, GPU::Uniform::m);
+    parseError("m");
+
     shaderProgram->uniformLocations.diffuseTexture = glGetUniformLocation(shaderProgram->shaderProgramId, GPU::Uniform::diffuseTexture);
     shaderProgram->uniformLocations.normalMapTexture = glGetUniformLocation(shaderProgram->shaderProgramId, GPU::Uniform::normalMapTexture);
+
+    // shader uniform blocks
+    shaderProgram->uniformLocations.materialUniformBlockIndex = glGetUniformBlockIndex(shaderProgram->shaderProgramId, 
+        GPU::Uniform::materialBlockIndex);
+    glUniformBlockBinding(shaderProgram->shaderProgramId, 
+        shaderProgram->uniformLocations.materialUniformBlockIndex,
+        GPU::Uniform::defaultMaterialUniformBlockBinding);
+
+    shaderProgram->uniformLocations.lightSourceUniformBlockIndex = glGetUniformBlockIndex(shaderProgram->shaderProgramId, 
+        GPU::Uniform::lightSourceBlockIndex);
+    glUniformBlockBinding(shaderProgram->shaderProgramId, 
+        shaderProgram->uniformLocations.lightSourceUniformBlockIndex,
+        GPU::Uniform::defaultLightSourceUniformBlockBinding);
 }
 
 
@@ -152,5 +178,31 @@ void RenderApiDispatch::setShaderProgram(RenderContext &context, const SetShader
 }
 
 void RenderApiDispatch::setMatrixUniform(RenderContext &context, const SetMatrixUniformCommand * cmd) {
-    glUniformMatrix4fv(cmd->uniformLocation, cmd->numMatrices, cmd->transpose, (float *) cmd->matrixBuffer.data);
+    glUniformMatrix4fv(cmd->uniformLocation, cmd->numMatrices, cmd->transpose, cmd->matrix);
+}
+
+void RenderApiDispatch::setFloatUniform(RenderContext &context, const SetFloatUniformCommand * cmd) {
+    glUniform1fv(cmd->uniformLocation, cmd->count, cmd->vals);
+}
+
+void RenderApiDispatch::setVec3FloatUniform(RenderContext &context, const SetVec3UniformCommand * cmd) {
+    glUniform3f(cmd->uniformLocation, cmd->x, cmd->y, cmd->z);
+}
+
+void RenderApiDispatch::initializeUniformBuffer(RenderContext &context, const InitializeUniformBufferCommand * cmd) {
+    GPU::UniformBufferObject *ubo = context.bufferObjectPool.get(cmd->uboHandle);
+    glGenBuffers(1, &ubo->bufferId);
+    glBindBuffer(GL_UNIFORM_BUFFER, ubo->bufferId);
+    glBufferData(GL_UNIFORM_BUFFER, cmd->bufferSize, cmd->data, GL_DYNAMIC_DRAW);
+    //glUniformBlockBinding(GL_UNIFORM_BUFFER, cmd->uniformBlockIndex, cmd->blockBinding);
+    glBindBufferBase(GL_UNIFORM_BUFFER, cmd->bufferBlockBinding, ubo->bufferId);
+    glBindBuffer(GL_UNIFORM_BUFFER, 0);
+}
+
+void RenderApiDispatch::updateUniformBuffer(RenderContext &context, const UpdateUniformBufferCommand * cmd) {
+    GPU::UniformBufferObject *ubo = context.bufferObjectPool.get(cmd->uboHandle);
+    glBindBuffer(GL_UNIFORM_BUFFER, ubo->bufferId);
+    // TODO should use glMapBuffer for frequent changes?
+    glBufferSubData(GL_UNIFORM_BUFFER, cmd->offset, cmd->bufferSize, cmd->data);
+    glBindBuffer(GL_UNIFORM_BUFFER, 0);
 }

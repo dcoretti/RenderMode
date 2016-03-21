@@ -7,3 +7,4 @@ struct SystemBuffer {
     void * data{ nullptr };
     unsigned int sizeBytes{ 0 };
 };
+
