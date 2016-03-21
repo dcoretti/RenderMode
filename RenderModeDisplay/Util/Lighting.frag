@@ -3,7 +3,10 @@
 in vec2 uv;
 in vec4 normal;	// camera space (normalized)
 in vec4 posView;
-uniform mat4 v;
+in vec3 posWorld;
+in vec3 lightSourceDirView;
+in vec3 eyeDirView;
+
 out vec3 fragColor;
 
 uniform sampler2D texSampler;
@@ -21,7 +24,7 @@ uniform Material {
 } material;
 
 void main() {
-	vec3 lightSourceView = (v * vec4(lightSource.location, 1)).xyz;
+
 //texture(texSampler, uv).rgb 
-    fragColor = vec3(1.0,1.0,1.0) * clamp(dot(normal.xyz, lightSourceView),0,1);
+    fragColor = material.diffuse * lightSource.diffuse * clamp(dot(normal.xyz, lightSourceDirView),0,1);
 };
