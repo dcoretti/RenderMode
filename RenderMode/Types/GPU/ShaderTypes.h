@@ -46,6 +46,7 @@ namespace GPU {
 
         struct LightSource {
             glm::vec3 diffuse;
+            float padding;
             glm::vec3 specular;
             glm::vec3 location;
 
@@ -54,6 +55,8 @@ namespace GPU {
 
         struct Material {
             glm::vec3 ambient;   // ka
+            // alignment is 4n for a 3-component vector. 
+            float padding; 
             glm::vec3 diffuse;   // kd
             glm::vec3 specular;  // ks
         };

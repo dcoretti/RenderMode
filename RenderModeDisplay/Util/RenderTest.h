@@ -175,19 +175,20 @@ public:
             light.diffuse = glm::vec3(1.0f);//glm::vec3(1.0f, 0.0f, 0.0f);
             light.specular = glm::vec3(1.0f);//glm::vec3(0.0f, 1.0f, 0.0f);
 
-            material.ambient = glm::vec3(1.0f);
+            material.ambient = glm::vec3(0.0f);
             material.diffuse = glm::vec3(0.0f , 1.0f, 0.0f);
-            material.specular = glm::vec3(1.0f);
+            material.specular = glm::vec3(0.0f);
 
             lightUbo = renderContext->bufferObjectPool.createObject();
             materialUbo = renderContext->bufferObjectPool.createObject();
-            lightHandle = cmdBuilder->buildCreateUniformBufferCommand(lightUbo, 
-                sizeof(GPU::Uniform::LightSource), 
-                (void *)0, 
-                GPU::Uniform::defaultLightSourceUniformBlockBinding, loadShaderCmd);
+            //lightHandle = cmdBuilder->buildCreateUniformBufferCommand(lightUbo, 
+            //    sizeof(GPU::Uniform::LightSource), 
+            //    (void *)0, 
+            //    GPU::Uniform::defaultLightSourceUniformBlockBinding, loadShaderCmd);
+            //
             materialHandle = cmdBuilder->buildCreateUniformBufferCommand(materialUbo,
                 sizeof(GPU::Uniform::Material),
-                (void *)0,
+                (void *) &material,
                 GPU::Uniform::defaultMaterialUniformBlockBinding, 
                 loadShaderCmd);
         }
@@ -369,8 +370,8 @@ public:
         cmdBuilder->buildSetMatrixUniformCommand(shader->uniformLocations.v, glm::value_ptr(v), 1, drawCmd);
         cmdBuilder->buildSetMatrixUniformCommand(shader->uniformLocations.m, glm::value_ptr(m), 1, drawCmd);
         if (withLight) {
-            cmdBuilder->buildUpdateUniformBufferCommand(lightUbo, (void*)&material, sizeof(GPU::Uniform::Material), 0, drawCmd);
-            cmdBuilder->buildUpdateUniformBufferCommand(lightUbo, (void*)&light, sizeof(GPU::Uniform::LightSource), 0, drawCmd);
+            cmdBuilder->buildUpdateUniformBufferCommand(materialUbo, (void*)&material, sizeof(GPU::Uniform::Material), 0, drawCmd);
+            //cmdBuilder->buildUpdateUniformBufferCommand(lightUbo, (void*)&light, sizeof(GPU::Uniform::LightSource), 0, drawCmd);
         }
 
         cmdBuilder->buildDrawArraysCommandWithParent(*renderContext->vaoPool.get(vaoHandle), drawContext, drawCmd);
