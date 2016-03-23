@@ -12,11 +12,11 @@ out vec3 fragColor;
 uniform sampler2D texSampler;
 
 
-//uniform LightSource {
-//    vec3 diffuse;
-//    vec3 specular;
-//    vec3 location;
-//} lightSource;
+uniform LightSource {
+    vec3 diffuse;
+    vec3 specular;
+    vec3 location;
+} lightSource;
 
 
 uniform Material {
@@ -28,5 +28,5 @@ uniform Material {
 void main() {
 //texture(texSampler, uvCoord).rgb 
 //material.diffuse * lightSource.diffuse *
-    fragColor =  material.diffuse;// normalView.xyz; //vec3(1.0,0.0,0.0) * clamp(dot(normal.xyz, lightSourceDirView),0,1);
+    fragColor =  lightSource.diffuse;// normalView.xyz; //vec3(1.0,0.0,0.0) * clamp(dot(normal.xyz, lightSourceDirView),0,1);
 }

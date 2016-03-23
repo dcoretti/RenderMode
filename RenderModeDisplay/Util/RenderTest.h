@@ -174,28 +174,26 @@ public:
             light.location = glm::vec3(1.0f);//glm::vec3(0.0f, 5.0f, 1.0f);
             light.diffuse = glm::vec3(1.0f);//glm::vec3(1.0f, 0.0f, 0.0f);
             light.specular = glm::vec3(1.0f);//glm::vec3(0.0f, 1.0f, 0.0f);
-
             material.ambient = glm::vec3(0.0f);
             material.diffuse = glm::vec3(0.0f , 1.0f, 0.0f);
-            material.specular = glm::vec3(0.0f);
+            material.specular = glm::vec3(0.0f,1.0f,0.0f);
 
             lightUbo = renderContext->bufferObjectPool.createObject();
             materialUbo = renderContext->bufferObjectPool.createObject();
-            //lightHandle = cmdBuilder->buildCreateUniformBufferCommand(lightUbo, 
-            //    sizeof(GPU::Uniform::LightSource), 
-            //    (void *)0, 
-            //    GPU::Uniform::defaultLightSourceUniformBlockBinding, loadShaderCmd);
-            //
+            lightHandle = cmdBuilder->buildCreateUniformBufferCommand(lightUbo, 
+                sizeof(GPU::Uniform::LightSource), 
+                (void *) &light, 
+                GPU::Uniform::defaultLightSourceUniformBlockBinding);
+            
             materialHandle = cmdBuilder->buildCreateUniformBufferCommand(materialUbo,
                 sizeof(GPU::Uniform::Material),
                 (void *) &material,
-                GPU::Uniform::defaultMaterialUniformBlockBinding, 
-                loadShaderCmd);
+                GPU::Uniform::defaultMaterialUniformBlockBinding);
         }
 
         renderQueue.submit(&loadShaderCmd, &key, 1);
-        //renderQueue.submit(&lightHandle, &key, 1);
-        //renderQueue.submit(&materialHandle, &key, 1);
+        renderQueue.submit(&lightHandle, &key, 1);
+        renderQueue.submit(&materialHandle, &key, 1);
 
         int executedStart = executed;
         executed += renderQueue.execute(*cmdBucket, *renderContext);
@@ -348,7 +346,7 @@ public:
 
         executed += renderQueue.execute(*cmdBucket, *renderContext);
 
-        cout << "commands executed: " << executed << endl;
+        cout << "commands executed for load: " << executed << endl;
         cout << "qsize: " << renderQueue.numCommands() << endl;
 
         GPU::DrawContext drawContext;
@@ -369,10 +367,9 @@ public:
         cmdBuilder->buildSetMatrixUniformCommand(shader->uniformLocations.mv, glm::value_ptr(mv), 1, drawCmd);
         cmdBuilder->buildSetMatrixUniformCommand(shader->uniformLocations.v, glm::value_ptr(v), 1, drawCmd);
         cmdBuilder->buildSetMatrixUniformCommand(shader->uniformLocations.m, glm::value_ptr(m), 1, drawCmd);
-        if (withLight) {
-            cmdBuilder->buildUpdateUniformBufferCommand(materialUbo, (void*)&material, sizeof(GPU::Uniform::Material), 0, drawCmd);
-            //cmdBuilder->buildUpdateUniformBufferCommand(lightUbo, (void*)&light, sizeof(GPU::Uniform::LightSource), 0, drawCmd);
-        }
+
+        cmdBuilder->buildUpdateUniformBufferCommand(materialUbo, (void*)&material, sizeof(GPU::Uniform::Material), 0, drawCmd);
+        cmdBuilder->buildUpdateUniformBufferCommand(lightUbo, (void*)&light, sizeof(GPU::Uniform::LightSource), 0, drawCmd);
 
         cmdBuilder->buildDrawArraysCommandWithParent(*renderContext->vaoPool.get(vaoHandle), drawContext, drawCmd);
     }

@@ -46,9 +46,11 @@ namespace GPU {
 
         struct LightSource {
             glm::vec3 diffuse;
-            float padding;
+            float padding;  // structures in glsl are aligned to the size of a vec4
             glm::vec3 specular;
+            float padding2;
             glm::vec3 location;
+            float padding3;
 
             // TODO directional lighting?
         };
@@ -58,7 +60,9 @@ namespace GPU {
             // alignment is 4n for a 3-component vector. 
             float padding; 
             glm::vec3 diffuse;   // kd
+            float padding2;
             glm::vec3 specular;  // ks
+            float padding3;
         };
 
     }

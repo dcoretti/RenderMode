@@ -17,13 +17,13 @@ uniform mat4 mv = mat4(1.0);
 uniform mat4 m = mat4(1.0);
 uniform mat4 v;
 
-/*
+
 uniform LightSource {
     vec3 diffuse;
     vec3 specular;
     vec3 location;
 } lightSource;
-*/
+
 void main() {
 	/*
 	posWorld = (m * pos).xyz;
