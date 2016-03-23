@@ -167,123 +167,128 @@ public:
         fragmentShaderData.source = frag;
         //vertexShaderData.type =
         Handle loadShaderCmd = cmdBuilder->buildCreateShaderCommand(vertexShaderData, fragmentShaderData, shaderProgramHandle);
+        Handle lightHandle;
+        Handle materialHandle;
+       
         if (setupUBO) {
             light.location = glm::vec3(1.0f);//glm::vec3(0.0f, 5.0f, 1.0f);
             light.diffuse = glm::vec3(1.0f);//glm::vec3(1.0f, 0.0f, 0.0f);
             light.specular = glm::vec3(1.0f);//glm::vec3(0.0f, 1.0f, 0.0f);
 
             material.ambient = glm::vec3(1.0f);
-            material.diffuse = glm::vec3(1.0f);
+            material.diffuse = glm::vec3(0.0f , 1.0f, 0.0f);
             material.specular = glm::vec3(1.0f);
 
             lightUbo = renderContext->bufferObjectPool.createObject();
             materialUbo = renderContext->bufferObjectPool.createObject();
-            cmdBuilder->buildCreateUniformBufferCommand(lightUbo, 
+            lightHandle = cmdBuilder->buildCreateUniformBufferCommand(lightUbo, 
                 sizeof(GPU::Uniform::LightSource), 
                 (void *)0, 
-                GPU::Uniform::defaultLightSourceUniformBlockBinding, 
-                loadShaderCmd);
-            cmdBuilder->buildCreateUniformBufferCommand(materialUbo,
+                GPU::Uniform::defaultLightSourceUniformBlockBinding, loadShaderCmd);
+            materialHandle = cmdBuilder->buildCreateUniformBufferCommand(materialUbo,
                 sizeof(GPU::Uniform::Material),
                 (void *)0,
-                GPU::Uniform::defaultMaterialUniformBlockBinding,
+                GPU::Uniform::defaultMaterialUniformBlockBinding, 
                 loadShaderCmd);
         }
 
         renderQueue.submit(&loadShaderCmd, &key, 1);
+        //renderQueue.submit(&lightHandle, &key, 1);
+        //renderQueue.submit(&materialHandle, &key, 1);
 
+        int executedStart = executed;
         executed += renderQueue.execute(*cmdBucket, *renderContext);
-
 
         GPU::ShaderProgram *shader = renderContext->shaderProgramsPool.get(shaderProgramHandle);
         setShaderCmd = cmdBuilder->buildSetShaderProgramCommand(*shader);
 
 
         renderQueue.submit(&setShaderCmd, &key, 1);
+        cout << "Executed by shader creation: " << executed - executedStart << endl;
 
         return executed;
     }
 
-    void attemptLoadCommands(bool withCamera = false) {
-        cout << "starting test" << endl;
-        int executed = 0;
-        CommandKey key;
-        executed += setupShaders(vertexShader, fragmentShader);
+    //void attemptLoadCommands(bool withCamera = false) {
+    //    cout << "starting test" << endl;
+    //    int executed = 0;
+    //    CommandKey key;
+    //    executed += setupShaders(vertexShader, fragmentShader);
 
-        // load vertices
-        Handle geometryBuffer = renderContext->bufferObjectPool.createObject();
-        GPU::GeometryBufferLayout bufferLayout;
+    //    // load vertices
+    //    Handle geometryBuffer = renderContext->bufferObjectPool.createObject();
+    //    GPU::GeometryBufferLayout bufferLayout;
 
-        vaoHandle = renderContext->vaoPool.createObject();
-        Handle vaoParentCommand = cmdBuilder->buildInitializeAndSetVertexArrayCommand(vaoHandle);
+    //    vaoHandle = renderContext->vaoPool.createObject();
+    //    Handle vaoParentCommand = cmdBuilder->buildInitializeAndSetVertexArrayCommand(vaoHandle);
 
-        Handle loadCmd = cmdBuilder->buildLoadVertexArrayCommandWithParent(
-            SystemBuffer((void*)&tri, sizeof(tri)),  // two triangles
-            geometryBuffer,
-            GPU::ShaderAttributeBinding::VERTICES,
-            bufferLayout,
-            vaoParentCommand);
-        renderQueue.submit(&vaoParentCommand, &key, 1);
+    //    Handle loadCmd = cmdBuilder->buildLoadVertexArrayCommandWithParent(
+    //        SystemBuffer((void*)&tri, sizeof(tri)),  // two triangles
+    //        geometryBuffer,
+    //        GPU::ShaderAttributeBinding::VERTICES,
+    //        bufferLayout,
+    //        vaoParentCommand);
+    //    renderQueue.submit(&vaoParentCommand, &key, 1);
 
-        executed += renderQueue.execute(*cmdBucket, *renderContext);
+    //    executed += renderQueue.execute(*cmdBucket, *renderContext);
 
-        cout << "commands executed: " << executed << endl;
-        cout << "qsize: " << renderQueue.numCommands() << endl;
+    //    cout << "commands executed: " << executed << endl;
+    //    cout << "qsize: " << renderQueue.numCommands() << endl;
 
-        GPU::DrawContext drawContext;
-        drawContext.indexOffset = 0;
-        drawContext.numElements = 3;
-        if (withCamera) {
-            glm::mat4 p = glm::perspective(glm::radians(90.0f), 640.0f / 480.0f, 0.1f, 100.0f);
-            glm::mat4 v = glm::lookAt(glm::vec3(0.0f, 0.0f, 3.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-            m = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -2.0f));
+    //    GPU::DrawContext drawContext;
+    //    drawContext.indexOffset = 0;
+    //    drawContext.numElements = 3;
+    //    if (withCamera) {
+    //        glm::mat4 p = glm::perspective(glm::radians(90.0f), 640.0f / 480.0f, 0.1f, 100.0f);
+    //        glm::mat4 v = glm::lookAt(glm::vec3(0.0f, 0.0f, 3.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+    //        m = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -2.0f));
 
-            GPU::ShaderProgram *shader = renderContext->shaderProgramsPool.get(shaderProgramHandle);
-            drawCmd = cmdBuilder->buildSetMatrixUniformCommand(shader->uniformLocations.mvp, glm::value_ptr(mvp), 1);
-            cmdBuilder->buildDrawArraysCommandWithParent(*renderContext->vaoPool.get(vaoHandle), drawContext, drawCmd);
-        }
-        else {
-            drawCmd = cmdBuilder->buildDrawArraysCommand(*renderContext->vaoPool.get(vaoHandle), drawContext);
-        }
-    }
+    //        GPU::ShaderProgram *shader = renderContext->shaderProgramsPool.get(shaderProgramHandle);
+    //        drawCmd = cmdBuilder->buildSetMatrixUniformCommand(shader->uniformLocations.mvp, glm::value_ptr(mvp), 1);
+    //        cmdBuilder->buildDrawArraysCommandWithParent(*renderContext->vaoPool.get(vaoHandle), drawContext, drawCmd);
+    //    }
+    //    else {
+    //        drawCmd = cmdBuilder->buildDrawArraysCommand(*renderContext->vaoPool.get(vaoHandle), drawContext);
+    //    }
+    //}
 
-    void loadIndexCommands() {
-        cout << "starting test" << endl;
-        int executed = 0;
-        CommandKey key;
-        executed += setupShaders(vertexShader, fragmentShader);
+    //void loadIndexCommands() {
+    //    cout << "starting test" << endl;
+    //    int executed = 0;
+    //    CommandKey key;
+    //    executed += setupShaders(vertexShader, fragmentShader);
 
-        // load vertices
-        Handle geometryBufferHandle = renderContext->bufferObjectPool.createObject();
-        Handle indexBufferHandle = renderContext->bufferObjectPool.createObject();
-        GPU::GeometryBufferLayout bufferLayout;
+    //    // load vertices
+    //    Handle geometryBufferHandle = renderContext->bufferObjectPool.createObject();
+    //    Handle indexBufferHandle = renderContext->bufferObjectPool.createObject();
+    //    GPU::GeometryBufferLayout bufferLayout;
 
-        vaoHandle = renderContext->vaoPool.createObject();
-        Handle vaoParentCommand = cmdBuilder->buildInitializeAndSetVertexArrayCommand(vaoHandle);
-        Handle loadIndexCmd = cmdBuilder->buildLoadIndexArrayCommandWithParent(SystemBuffer((void*)&i, sizeof(i)),
-            indexBufferHandle,
-            vaoParentCommand);
-        Handle loadVertexCmd = cmdBuilder->buildLoadVertexArrayCommandWithParent(
-            SystemBuffer((void*)&v, sizeof(v)),  // two triangles
-            geometryBufferHandle,
-            GPU::ShaderAttributeBinding::VERTICES,
-            bufferLayout,
-            vaoParentCommand);
-        renderQueue.submit(&vaoParentCommand, &key, 1);
+    //    vaoHandle = renderContext->vaoPool.createObject();
+    //    Handle vaoParentCommand = cmdBuilder->buildInitializeAndSetVertexArrayCommand(vaoHandle);
+    //    Handle loadIndexCmd = cmdBuilder->buildLoadIndexArrayCommandWithParent(SystemBuffer((void*)&i, sizeof(i)),
+    //        indexBufferHandle,
+    //        vaoParentCommand);
+    //    Handle loadVertexCmd = cmdBuilder->buildLoadVertexArrayCommandWithParent(
+    //        SystemBuffer((void*)&v, sizeof(v)),  // two triangles
+    //        geometryBufferHandle,
+    //        GPU::ShaderAttributeBinding::VERTICES,
+    //        bufferLayout,
+    //        vaoParentCommand);
+    //    renderQueue.submit(&vaoParentCommand, &key, 1);
 
-        executed += renderQueue.execute(*cmdBucket, *renderContext);
+    //    executed += renderQueue.execute(*cmdBucket, *renderContext);
 
-        cout << "commands executed: " << executed << endl;
-        cout << "qsize: " << renderQueue.numCommands() << endl;
+    //    cout << "commands executed: " << executed << endl;
+    //    cout << "qsize: " << renderQueue.numCommands() << endl;
 
-        GPU::DrawContext drawContext;
-        drawContext.indexOffset = 0;
-        drawContext.numElements = 6;
-        drawCmd = cmdBuilder->buildDrawIndexedCommand(*renderContext->vaoPool.get(vaoHandle), drawContext);
-    }
+    //    GPU::DrawContext drawContext;
+    //    drawContext.indexOffset = 0;
+    //    drawContext.numElements = 6;
+    //    drawCmd = cmdBuilder->buildDrawIndexedCommand(*renderContext->vaoPool.get(vaoHandle), drawContext);
+    //}
 
 
-    void texLoad(bool withCamera = false, bool withLight = false) {
+    void texLoad(bool withLight = false) {
         int executed = 0;
         CommandKey key;
 
@@ -350,37 +355,27 @@ public:
         drawContext.numElements = 3;
 
         // TODO move this junk to just be single commands rather than growing this list..
-        if (withCamera) {
-            glm::mat4 p = glm::perspective(glm::radians(90.0f), 640.0f / 480.0f, 0.1f, 100.0f);
-            m = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -2.0f));
-            v = glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-            mvp = p * v * m;
-            mv = v * m;
 
-            GPU::ShaderProgram *shader = renderContext->shaderProgramsPool.get(shaderProgramHandle);
-            drawCmd = cmdBuilder->buildSetMatrixUniformCommand(shader->uniformLocations.mvp, glm::value_ptr(mvp), 1);
-            cmdBuilder->buildSetMatrixUniformCommand(shader->uniformLocations.mv, glm::value_ptr(mv), 1, drawCmd);
-            cmdBuilder->buildSetMatrixUniformCommand(shader->uniformLocations.v, glm::value_ptr(v), 1, drawCmd);
-            cmdBuilder->buildSetMatrixUniformCommand(shader->uniformLocations.m, glm::value_ptr(m), 1, drawCmd);
-            if (withLight) {
-                cmdBuilder->buildUpdateUniformBufferCommand(lightUbo, (void*)&material, sizeof(GPU::Uniform::Material), 0, drawCmd);
-                cmdBuilder->buildUpdateUniformBufferCommand(lightUbo, (void*)&light, sizeof(GPU::Uniform::LightSource), 0, drawCmd);
-            }
+        // Camera transformations
+        p = glm::perspective(glm::radians(90.0f), 640.0f / 480.0f, 0.1f, 100.0f);
+        m = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -2.0f));
+        v = glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+        mvp = p * v * m;
+        mv = v * m;
 
-            cmdBuilder->buildDrawArraysCommandWithParent(*renderContext->vaoPool.get(vaoHandle), drawContext, drawCmd);
-        } else {
-            drawCmd = cmdBuilder->buildDrawArraysCommand(*renderContext->vaoPool.get(vaoHandle), drawContext);
+        GPU::ShaderProgram *shader = renderContext->shaderProgramsPool.get(shaderProgramHandle);
+        drawCmd = cmdBuilder->buildSetMatrixUniformCommand(shader->uniformLocations.mvp, glm::value_ptr(mvp), 1);
+        cmdBuilder->buildSetMatrixUniformCommand(shader->uniformLocations.mv, glm::value_ptr(mv), 1, drawCmd);
+        cmdBuilder->buildSetMatrixUniformCommand(shader->uniformLocations.v, glm::value_ptr(v), 1, drawCmd);
+        cmdBuilder->buildSetMatrixUniformCommand(shader->uniformLocations.m, glm::value_ptr(m), 1, drawCmd);
+        if (withLight) {
+            cmdBuilder->buildUpdateUniformBufferCommand(lightUbo, (void*)&material, sizeof(GPU::Uniform::Material), 0, drawCmd);
+            cmdBuilder->buildUpdateUniformBufferCommand(lightUbo, (void*)&light, sizeof(GPU::Uniform::LightSource), 0, drawCmd);
         }
 
-
+        cmdBuilder->buildDrawArraysCommandWithParent(*renderContext->vaoPool.get(vaoHandle), drawContext, drawCmd);
     }
 
-
-    void cameraTest() {
-
-
-
-    }
 
     void draw() {
         CommandKey key;
@@ -408,6 +403,7 @@ public:
     RenderContext *renderContext;
     RenderQueue renderQueue;
 
+    glm::mat4 p;
     glm::mat4 m;
     glm::mat4 v;
     glm::mat4 mv;

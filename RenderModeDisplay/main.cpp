@@ -98,7 +98,7 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
         if (!didTest) {
             //t.loadIndexCommands();
             //t.attemptLoadCommands(true);
-            t.texLoad(true, true);
+            t.texLoad(true);
             didTest = true;
         }
 

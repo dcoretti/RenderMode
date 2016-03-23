@@ -1,7 +1,7 @@
 #version 430 core
-
-in vec2 uv;
-in vec4 normal;	// camera space (normalized)
+/*
+in vec2 uvCoord;
+in vec4 normalView;	// camera space (normalized)
 in vec4 posView;
 in vec3 posWorld;
 in vec3 lightSourceDirView;
@@ -24,7 +24,13 @@ uniform Material {
 } material;
 
 void main() {
-
-//texture(texSampler, uv).rgb 
-    fragColor = material.diffuse * lightSource.diffuse * clamp(dot(normal.xyz, lightSourceDirView),0,1);
+//texture(texSampler, uvCoord).rgb 
+//material.diffuse * lightSource.diffuse *
+    fragColor = vec3(1.0,1.0,0.0);// material.diffuse;// normalView.xyz; //vec3(1.0,0.0,0.0) * clamp(dot(normal.xyz, lightSourceDirView),0,1);
 };
+*/
+
+out vec3 fragColor;
+void main() {
+	fragColor = vec3(1.0,1.0,1.0);
+}

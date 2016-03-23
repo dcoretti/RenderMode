@@ -3,13 +3,19 @@ layout(location = 0) in vec4 pos;
 layout(location = 1) in vec2 uv;
 layout(location = 2) in vec3 normal;
 
-out vec2 outUv;
-out vec4 outNormal;
-out vec4 outPosView;
+uniform mat4 mvp = mat4(1.0);
+void main() {
+gl_Position = mvp * pos;
+}
+/*
+out vec2 uvCoord;
+out vec4 normalView;
+out vec4 posView;
 
 out vec3 posWorld;
 out vec3 lightSourceDirView;
 out vec3 eyeDirView;
+out vec4 posProj;
 
 
 uniform mat4 mvp = mat4(1.0);
@@ -32,10 +38,10 @@ void main() {
 
 	lightSourceDirView = lightSourcePosView + eyeDirView;
 
-    outUv = uv;
-    outNormal = normalize(mv * vec4(normal,1));
-    outPosView = mv * pos;
+    uvCoord = uv;
+	normalView = vec4(normal,1);
+    //normalView = normalize(mv * vec4(normal,1));
+    posView = mv * pos;
 
     gl_Position = mvp * pos;
-
-};
+};*/

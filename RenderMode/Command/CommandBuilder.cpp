@@ -197,7 +197,14 @@ Handle CommandBuilder::buildUpdateUniformBufferCommand(Handle uboHandle, void * 
 }
 
 Handle CommandBuilder::buildCreateUniformBufferCommand(Handle uboHandle, size_t bufferSize, void * data, int bufferBlockBinding, Handle parent) {
-    Handle createUniformHandle = cmdBucket->createCommand<InitializeUniformBufferCommand>(parent);
+
+    Handle createUniformHandle;
+    if (parent.isValidHandle()) {
+        createUniformHandle = cmdBucket->createCommand<InitializeUniformBufferCommand>(parent);
+    } else {
+        createUniformHandle = cmdBucket->createCommand<InitializeUniformBufferCommand>(CommandKey());
+    }
+
     InitializeUniformBufferCommand *cmd = cmdBucket->getCommandData<InitializeUniformBufferCommand>(createUniformHandle);
 
     cmd->uboHandle = uboHandle;

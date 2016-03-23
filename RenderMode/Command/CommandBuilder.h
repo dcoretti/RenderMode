@@ -51,7 +51,7 @@ public:
     Handle buildSetVec3UniformCommand(int shaderUniform, float x, float y, float z, Handle parent = Handle());
     Handle buildSetFloatUniformCommand(int shaderUniform, float *vals, int count, Handle parent = Handle());
     Handle buildUpdateUniformBufferCommand(Handle uboHandle, void * data, size_t bufferSize, size_t offset, Handle parent);
-    Handle buildCreateUniformBufferCommand(Handle uboHandle, size_t bufferSize, void * data,  int bufferBlockBinding, Handle parent);
+    Handle buildCreateUniformBufferCommand(Handle uboHandle, size_t bufferSize, void * data,  int bufferBlockBinding, Handle parent = Handle());
 
     /* Draw Commands */
     Handle buildDrawArraysCommand(GPU::VertexArrayObject &vao, GPU::DrawContext &context);
