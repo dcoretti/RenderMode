@@ -56,21 +56,21 @@ void RenderApiDispatch::loadTextureBuffer(RenderContext &context, const LoadText
 //}
 
 void RenderApiDispatch::drawVertexArray(RenderContext &context, const DrawVertexArrayCommand *cmd) {
-    glBindVertexArray(cmd->vao.vaoId);
+    glBindVertexArray(cmd->vao.bufferId);
     glDrawArrays(GL_TRIANGLES,cmd->drawContext.indexOffset, cmd->drawContext.numElements);
     glBindVertexArray(0);
 }
 
 void RenderApiDispatch::drawIndexedVertexArray(RenderContext &context, const DrawVertexArrayCommand *cmd) {
-    glBindVertexArray(cmd->vao.vaoId);
+    glBindVertexArray(cmd->vao.bufferId);
     glDrawElements(GL_TRIANGLES, cmd->drawContext.numElements, GL_UNSIGNED_INT, (void *) 0);
     glBindVertexArray(0);
 }
 
 void RenderApiDispatch::initializeAndSetVertexArrayObject(RenderContext &context, const InitializeAndSetVertexArrayCommand *cmd) {
-    GPU::VertexArrayObject *vao = context.vaoPool.get(cmd->vertexArrayObject);
-    glGenVertexArrays(1, &vao->vaoId);
-    glBindVertexArray(vao->vaoId);
+    GPU::VertexArrayObject *vao = context.bufferObjectPool.get(cmd->vertexArrayObject);
+    glGenVertexArrays(1, &vao->bufferId);
+    glBindVertexArray(vao->bufferId);
 }
 
 

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../Memory/IndexedPool.h"
+#include "../Memory/LinearAllocator.h"
 #include "../Types/GPU/GeometryTypes.h"
 #include "../Types/GPU/ShaderTypes.h"
 #include "../Types/Application/Material.h"
@@ -10,22 +11,22 @@
 // All pooled data the rendering engine has access to.
 struct RenderContext {
     RenderContext(size_t bufferObjectPoolSize,
-        size_t geometryBufferLayoutPoolSize,
         size_t shaderProgramsPoolSize,
         size_t materialPoolSize,
-        size_t meshPoolSize,
         size_t modelPoolSize,
-        size_t vaoPoolSize);
+        size_t modelGeometryPoolSize) :bufferObjectPool(IndexedPool<GPU::BufferObject>(bufferObjectPoolSize)),
+        shaderProgramsPool(IndexedPool<GPU::ShaderProgram>(shaderProgramsPoolSize)),
+        materialPool(IndexedPool<Material>(materialPoolSize)),
+        modelPool(LinearAllocator(modelPoolSize)),
+        modelGeometryPool(IndexedPool<ModelGeometryLoadData>(modelGeometryPoolSize))
+    {
+    }
     // TODO change all of these to be handed a pool to allocate from rather than a size constructor.
 
-    // All Vertex, normal, texCoords allocated here.  TODO type handles to allow separate pools.
     // Right now this is the only way we can get the render engine to know where to put the id it generates
     IndexedPool<GPU::BufferObject> bufferObjectPool;
-    IndexedPool<GPU::VertexArrayObject> vaoPool;
-    //IndexedPool<GPU::GeometryBufferLayout> geometryBufferLayoutPool;
     IndexedPool<GPU::ShaderProgram> shaderProgramsPool; // overkill with overhead?
-
     IndexedPool<Material> materialPool;
-    IndexedPool<Mesh> meshPool;
-    IndexedPool<ModelGeometryLoadData> modelGeometryPool;  // All active models in a given context
+    LinearAllocator modelPool;
+    IndexedPool<ModelGeometryLoadData> modelGeometryPool;  // Transient geometry
 };

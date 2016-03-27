@@ -42,9 +42,6 @@
     <ClCompile Include="Command\CommandBuilder.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Render\RenderContext.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Command\Command.h">
@@ -98,13 +95,13 @@
     <ClInclude Include="Types\Application\Model.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Types\Application\TransientModelData.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Types\GPU\ShaderTypes.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Types\CommonTypes.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Memory\IndexedLinearAllocator.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

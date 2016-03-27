@@ -28,7 +28,7 @@ private:
 // in the form new (operator new(size, allocator)) T(...);
 // calling new (allocator) T(...) results in above call.
 void * operator new(size_t size, LinearAllocator & allocator);
-
+void * operator new[](size_t size, LinearAllocator &allocator);
 // we also need our own version of operator delete because any failed new from above needs to have a corresponding delete
 void operator delete(void * ptr, LinearAllocator& allocator);
 

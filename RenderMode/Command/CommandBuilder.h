@@ -1,8 +1,6 @@
 #pragma once
 #include "CommandBucket.h"
-
 #include "../Types/Application/Model.h"
-#include "../Types/Application/TransientModelData.h"
 // TODO include key generation
 
 /*

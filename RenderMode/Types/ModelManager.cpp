@@ -58,18 +58,18 @@ void ModelManager::populateMaterial(RenderContext & renderContext, Material *mat
     material->specularTexture = loadTexture(renderContext, objMaterial.map_ks).textureHandle;
 }
 
+Handle ModelManager::loadModel(std::string fname, RenderContext &renderContext) {
+    // TODO consider moving this to a constructor with rendercontext?
+    ModelObject obj = ObjLoader::load(fname);
 
-TransientModelData ModelManager::convertObjToInternal(Model &model,
-                                                    RenderContext &renderContext,
-                                                    ModelObject &obj){
     // TODO these should be allocated on some pool
     map<string, Handle> materialHandles;
     size_t vSize = obj.vertices.size();
     size_t indexCount = 0;  // find a way to get full index count TODO <---------------------------------------------------
 
 
-    // Deduplicated coordinate data
-    // todo switch to placement new[]
+                            // Deduplicated coordinate data
+                            // todo switch to placement new[]
     glm::vec3 *vertices = (glm::vec3*)meshDataPool->alloc(sizeof(glm::vec3) * vSize);
     glm::vec2 *texCoords = (glm::vec2*)meshDataPool->alloc(sizeof(glm::vec2) * vSize);
     glm::vec3 *normals = (glm::vec3*)meshDataPool->alloc(sizeof(glm::vec3) * vSize);
@@ -84,83 +84,82 @@ TransientModelData ModelManager::convertObjToInternal(Model &model,
         materialHandles[materialEntry.second.name] = materialHandle;
     }
 
-    /*
-     for each face
-        if v/t/n not in seenVtnCombinations
-            add v/t/n actual values behind v/t/n index to deduplicated vertices,texCoords,normals  at position i
-            add new IndexedCoord->i to seenVtnCombinations
-            add i to new face list for mesh
-        else
-            add seenVtnCombinations[v/t/n] to face list for mesh
+    // initialize containers for completed model/meshes
+    
 
-        NOTE each f v/t/n indexes into vertices texCoords, normals separately.  Deduplication by v/t/n tuple necessary
+
+
+
+    /*
+    for each face
+    if v/t/n not in seenVtnCombinations
+    add v/t/n actual values behind v/t/n index to deduplicated vertices,texCoords,normals  at position i
+    add new IndexedCoord->i to seenVtnCombinations
+    add i to new face list for mesh
+    else
+    add seenVtnCombinations[v/t/n] to face list for mesh
+
+    NOTE each f v/t/n indexes into vertices texCoords, normals separately.  Deduplication by v/t/n tuple necessary
     */
     unsigned int curCoordIndex = 0;  // also total deduplicated v/t/n at the end of processing
     unsigned int curIndex = 0;       // index into indices array
     unordered_map<IndexedCoord, unsigned int> seenVtnCombinations; // Map of <V,T,N> -> index in deduplicated array
-    for (auto groupEntry : obj.groups) {
-        // in this case a group is a Model.  Each set of faces is a mesh with a corresponding material
-        unsigned int curMaterial = 0;
-        model.numMeshes = (int)groupEntry.second.faces.size();
-        model.meshes = new Handle[model.numMeshes];
-        for (vector<int> faceVector : groupEntry.second.faces) {
-            model.meshes[curMaterial] = renderContext.meshPool.createObject();
-            Mesh * mesh = renderContext.meshPool.get(model.meshes[curMaterial]);
 
-            mesh->indexOffset = curIndex;   // starting index for all faces (v/t/n index) on this mesh
+    if (obj.groups.size() > 1) {
+        cout << "can only handle one obj group (one model) per obj file right now.  Got" << obj.groups.size() << endl;
+        return Handle();
+    }
+    auto groupEntry = *obj.groups.begin();
 
-            for (int i = 0; i < faceVector.size(); i += 3) {
-                // face elements are in form v/t/n with 1 as first index. 0 indicates missing element
-                IndexedCoord indexedCoord(obj.vertices[faceVector[i]-1], 
-                    obj.texCoords[faceVector[i + 1]-1], 
-                    obj.normals[faceVector[i + 2]-1]);
+    unsigned int curMaterial = 0;
+    Model *model = new (renderContext.modelPool) Model;
 
-                if (seenVtnCombinations.find(indexedCoord) == seenVtnCombinations.end()) {
-                    vertices[curCoordIndex] = indexedCoord.vertex;
-                    texCoords[curCoordIndex] = indexedCoord.texCoord;
-                    normals[curCoordIndex] = indexedCoord.normal;
-                    indices[curIndex] = curIndex;
-                    curIndex++;
-                    curCoordIndex++;
-                } else {
-                    indices[curIndex++] = seenVtnCombinations[indexedCoord];
-                }
+    model->numMeshes = (int)groupEntry.second.faces.size();
+    model->meshes = new (renderContext.modelPool) Mesh[model->numMeshes];
+
+    for (vector<int> faceVector : groupEntry.second.faces) {
+        Mesh * mesh = &model->meshes[curMaterial];
+
+        mesh->indexOffset = curIndex;   // starting index for all faces (v/t/n index) on this mesh
+
+        for (int i = 0; i < faceVector.size(); i += 3) {
+            // face elements are in form v/t/n with 1 as first index. 0 indicates missing element
+            IndexedCoord indexedCoord(obj.vertices[faceVector[i] - 1],
+                obj.texCoords[faceVector[i + 1] - 1],
+                obj.normals[faceVector[i + 2] - 1]);
+
+            if (seenVtnCombinations.find(indexedCoord) == seenVtnCombinations.end()) {
+                vertices[curCoordIndex] = indexedCoord.vertex;
+                texCoords[curCoordIndex] = indexedCoord.texCoord;
+                normals[curCoordIndex] = indexedCoord.normal;
+                indices[curIndex] = curIndex;
+                curIndex++;
+                curCoordIndex++;
+            } else {
+                indices[curIndex++] = seenVtnCombinations[indexedCoord];
             }
-            mesh->numElements = curIndex;
-            mesh->material = materialHandles[groupEntry.second.materialStates[curMaterial].materialName];
-            curMaterial++;
         }
+        mesh->numElements = curIndex;
+        mesh->material = materialHandles[groupEntry.second.materialStates[curMaterial].materialName];
+        curMaterial++;
     }
 
-    return TransientModelData(vertices, curCoordIndex * sizeof(glm::vec3),
-        normals, curCoordIndex * sizeof(glm::vec3),
-        texCoords, curCoordIndex * sizeof(glm::vec2),
-        indices, curCoordIndex * sizeof(unsigned int),
-        curCoordIndex);
-}
 
-
-
-Handle ModelManager::loadModel(std::string fname, RenderContext &renderContext) {
-    // TODO consider moving this to a constructor with rendercontext?
-    ModelObject obj = ObjLoader::load(fname);
 
     Handle modelHandle = renderContext.modelGeometryPool.createObject();
-    ModelGeometryLoadData *model = renderContext.modelGeometryPool.get(modelHandle);
-    // Preallocate space for graphics API handle to GPU buffer that render engine can populate on load commands.
-    model->vao = renderContext.vaoPool.createObject();
-    model->vertices = renderContext.bufferObjectPool.createObject();
-    model->texCoords = renderContext.bufferObjectPool.createObject();
-    model->normals = renderContext.bufferObjectPool.createObject();
-    model->indices = renderContext.bufferObjectPool.createObject();
-
-    //model->vertexLayout = renderContext.geometryBufferLayoutPool.createObject();
-    //model->normalsLayout = renderContext.geometryBufferLayoutPool.createObject();
-    //model->texCoordsLayout = renderContext.geometryBufferLayoutPool.createObject();
-
-    TransientModelData transientModelData = convertObjToInternal(*model, renderContext, obj);
-
-    cmdBuilder->buildLoadModelCommand(*model, transientModelData);
+    ModelGeometryLoadData *modelGeometry = new (renderContext.modelGeometryPool.get(modelHandle)) 
+        ModelGeometryLoadData(renderContext.bufferObjectPool.createObject(),
+        Geometry(renderContext.bufferObjectPool.createObject(),
+            GPU::GeometryBufferLayout(),
+            SystemBuffer(vertices, curCoordIndex * sizeof(glm::vec3))),
+        Geometry(renderContext.bufferObjectPool.createObject(),
+            GPU::GeometryBufferLayout(),
+            SystemBuffer(normals, curCoordIndex * sizeof(glm::vec3))),
+        Geometry(renderContext.bufferObjectPool.createObject(),
+            GPU::GeometryBufferLayout(2, 0),
+            SystemBuffer(texCoords, curCoordIndex * sizeof(glm::vec2))),
+        Indices(renderContext.bufferObjectPool.createObject(),
+            SystemBuffer(indices, curCoordIndex * sizeof(unsigned int))));
 
     return modelHandle;
 }
@@ -172,36 +171,36 @@ Handle ModelManager::loadModel(std::string fname, RenderContext &renderContext) 
 
 
 
-//
-//Handle CommandBuilder::buildLoadModelCommand(ModelGeometryLoadData &data) {
-//    Handle loadVao = buildInitializeAndSetVertexArrayCommand(data.vao);
-//    Handle loadVertices = buildLoadVertexArrayCommandWithParent(data.vertexData,
-//        data.vertices,
-//        GPU::ShaderAttributeBinding::VERTICES,
-//        data.vertexLayout,
-//        loadVao);
-//    Handle loadTextures = buildLoadVertexArrayCommandWithParent(data.texCoordsData,
-//        data.texCoords,
-//        GPU::ShaderAttributeBinding::UV,
-//        data.texCoordsLayout,
-//        loadVao);
-//    Handle loadNormals = buildLoadVertexArrayCommandWithParent(data.normalsData,
-//        data.normals,
-//        GPU::ShaderAttributeBinding::NORMALS,
-//        data.normalsLayout,
-//        loadVao);
-//    Handle loadIndices = buildLoadIndexArrayCommandWithParent(data.indicesData, data.indices, loadVao);
-//
-//    return loadVao;
-//}
-//
-//Handle CommandBuilder::buildSetMaterialCommand(Handle materialUniform, GPU::Uniform::Material &material) {
-//    Handle materialUniforms = buildUpdateUniformBufferCommand(materialUniform,
-//        &material,
-//        sizeof(GPU::Uniform::Material), 0,
-//        Handle());
-//
-//    Handle diffuseTexture;
-//    Handle ambientTexture;
-//    Handle specularTexture;
-//}
+
+Handle ModelManager::buildLoadModelCommand(ModelGeometryLoadData &data) {
+    Handle loadVao = cmdBuilder->buildInitializeAndSetVertexArrayCommand(data.vao);
+    Handle loadVertices = cmdBuilder->buildLoadVertexArrayCommandWithParent(data.vertices.bufferData,
+        data.vertices.bufferObject,
+        GPU::ShaderAttributeBinding::VERTICES,
+        data.vertices.bufferLayout,
+        loadVao);
+    Handle loadTextures = cmdBuilder->buildLoadVertexArrayCommandWithParent(data.texCoords.bufferData,
+        data.texCoords.bufferObject,
+        GPU::ShaderAttributeBinding::UV,
+        data.texCoords.bufferLayout,
+        loadVao);
+    Handle loadNormals = cmdBuilder->buildLoadVertexArrayCommandWithParent(data.normals.bufferData,
+        data.normals.bufferObject,
+        GPU::ShaderAttributeBinding::NORMALS,
+        data.normals.bufferLayout,
+        loadVao);
+    Handle loadIndices = cmdBuilder->buildLoadIndexArrayCommandWithParent(data.indices.bufferData, data.indices.bufferObject, loadVao);
+
+    return loadVao;
+}
+
+void ModelManager::buildSetMaterialCommand(GPU::UniformBufferObject materialUniform, GPU::Uniform::Material &material) {
+    Handle materialUniforms = cmdBuilder->buildUpdateUniformBufferCommand(materialUniform,
+        &material,
+        sizeof(GPU::Uniform::Material), 0,
+        Handle());
+
+    Handle diffuseTexture;
+    Handle ambientTexture;
+    Handle specularTexture;
+}

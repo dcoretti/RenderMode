@@ -141,7 +141,6 @@
     <ClCompile Include="Dispatch\RenderApiDispatch.cpp" />
     <ClCompile Include="Memory\LinearAllocator.cpp" />
     <ClCompile Include="Memory\PoolIndex.cpp" />
-    <ClCompile Include="Render\RenderContext.cpp" />
     <ClCompile Include="Render\RenderQueue.cpp" />
     <ClCompile Include="Types\ModelManager.cpp" />
     <ClCompile Include="Util\ObjLoader.cpp" />
@@ -152,6 +151,7 @@
     <ClInclude Include="Command\CommandBuilder.h" />
     <ClInclude Include="Dispatch\RenderApiDispatch.h" />
     <ClInclude Include="Memory\Handle.h" />
+    <ClInclude Include="Memory\IndexedLinearAllocator.h" />
     <ClInclude Include="Memory\IndexedPool.h" />
     <ClInclude Include="Memory\LinearAllocator.h" />
     <ClInclude Include="Memory\PackedArray.h" />
@@ -159,7 +159,6 @@
     <ClInclude Include="Memory\SparseArray.h" />
     <ClInclude Include="Render\RenderContext.h" />
     <ClInclude Include="Render\RenderQueue.h" />
-    <ClInclude Include="Types\Application\TransientModelData.h" />
     <ClInclude Include="Types\CommonTypes.h" />
     <ClInclude Include="Types\GPU\GeometryTypes.h" />
     <ClInclude Include="Types\Application\Material.h" />

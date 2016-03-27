@@ -15,11 +15,7 @@ namespace GPU {
     };
     typedef BufferObject TextureBufferObject;
     typedef BufferObject UniformBufferObject;
-
-    
-    struct VertexArrayObject {
-        unsigned int vaoId;
-    };
+    typedef BufferObject VertexArrayObject;
 
 
     struct DrawContext {
@@ -54,12 +50,4 @@ namespace GPU {
         int height;
         TextureFormat textureFormat;
     };
-
-    // Mapped directly to uniform in shader 
-    //struct Material {
-    //    glm::vec3 ambient;   // ka
-    //    glm::vec3 diffuse;   // kd
-    //    glm::vec3 specular;  // ks
-    //};
-
 }

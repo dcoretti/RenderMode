@@ -22,24 +22,35 @@ struct Model {
     Mesh *meshes;
 };
 
-// 1.  fill out this and construct load commands which will fill out the 
+
+struct Geometry {
+    Geometry() = default;
+    Geometry(Handle bufferObject, GPU::GeometryBufferLayout bufferLayout, SystemBuffer bufferData) :
+        bufferObject(bufferObject), bufferLayout(bufferLayout), bufferData(bufferData) {}
+    Handle bufferObject;
+    GPU::GeometryBufferLayout bufferLayout;
+    SystemBuffer bufferData;
+};
+
+struct Indices {
+    Indices() = default;
+    Indices(Handle bufferObject, SystemBuffer bufferData) : bufferObject(bufferObject), bufferData(bufferData) {}
+    Handle bufferObject;
+    SystemBuffer bufferData;
+};
+
+
+// 1.  Load transient data to be transferred to GPU.
 struct ModelGeometryLoadData {
+    ModelGeometryLoadData() = default;
+    ModelGeometryLoadData(Handle vao, Geometry vertices, Geometry normals, Geometry texCoords, Indices indices) :
+        vao(vao), vertices(vertices), normals(normals), texCoords(texCoords), indices(indices) {}
+
     // To be filled out
     Handle vao;
-    Handle vertices;
-    Handle normals;
-    Handle texCoords;
-    Handle indices;
-
-    // how is the data laid out in system buffers for loading
-    GPU::GeometryBufferLayout vertexLayout;
-    GPU::GeometryBufferLayout normalsLayout;
-    GPU::GeometryBufferLayout texCoordsLayout;
-    GPU::GeometryBufferLayout indicesLayout;
-
-
-    SystemBuffer vertexData;
-    SystemBuffer normalsData;
-    SystemBuffer texCoordsData;
-    SystemBuffer indicesData;
+    Geometry vertices;
+    Geometry normals;
+    Geometry texCoords;
+    Indices indices;
 };
+

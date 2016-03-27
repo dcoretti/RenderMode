@@ -39,6 +39,10 @@ void * operator new(size_t size, LinearAllocator & allocator){
     return allocator.alloc(size);
 }
 
+void * operator new[](size_t size, LinearAllocator & allocator){
+    return allocator.alloc(size);
+}
+
 void operator delete(void * ptr, LinearAllocator& allocator) {
     // do nothing.  Linear allocators do not free individual allocations.  Only entire resets of the pool matter.
 }

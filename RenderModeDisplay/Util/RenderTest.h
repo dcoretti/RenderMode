@@ -144,7 +144,7 @@ void loadTextFile(char * fname, std::string &loadedFile) {
 class RenderTest {
 public:
     RenderTest() {
-        renderContext = new RenderContext(1024, 1024, 1024, 1024, 1024, 1024, 1024);
+        renderContext = new RenderContext(1024, 1024, 1024, 1024, 1024);
         cmdBucket = new CommandBucket(100, 1024 * 1024 * 5);
         cmdBuilder = new CommandBuilder(*cmdBucket, *renderContext);
         mgr = new ModelManager(1024, 1024, cmdBuilder);
@@ -165,7 +165,6 @@ public:
         shaderProgramHandle = renderContext->shaderProgramsPool.createObject();
         vertexShaderData.source = vertex;
         fragmentShaderData.source = frag;
-        //vertexShaderData.type =
         Handle loadShaderCmd = cmdBuilder->buildCreateShaderCommand(vertexShaderData, fragmentShaderData, shaderProgramHandle);
         Handle lightHandle;
         Handle materialHandle;
@@ -305,7 +304,7 @@ public:
         Handle geometryBuffer = renderContext->bufferObjectPool.createObject();
         GPU::GeometryBufferLayout bufferLayout;
 
-        vaoHandle = renderContext->vaoPool.createObject();
+        vaoHandle = renderContext->bufferObjectPool.createObject();
         Handle vaoParentCommand = cmdBuilder->buildInitializeAndSetVertexArrayCommand(vaoHandle);
 
         Handle loadCmd = cmdBuilder->buildLoadVertexArrayCommandWithParent(
@@ -375,7 +374,7 @@ public:
         cmdBuilder->buildUpdateUniformBufferCommand(*materialUbo, (void*)&material, sizeof(GPU::Uniform::Material), 0, drawCmd);
         cmdBuilder->buildUpdateUniformBufferCommand(*lightUbo, (void*)&light, sizeof(GPU::Uniform::LightSource), 0, drawCmd);
 
-        cmdBuilder->buildDrawArraysCommandWithParent(*renderContext->vaoPool.get(vaoHandle), drawContext, drawCmd);
+        cmdBuilder->buildDrawArraysCommandWithParent(*renderContext->bufferObjectPool.get(vaoHandle), drawContext, drawCmd);
     }
 
 

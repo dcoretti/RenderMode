@@ -44,17 +44,13 @@ private:
         void * textureData; // system data prior to loading to GPU
     };
 
-    /*
-    struct TransientModelDataInfo {
-        unsigned int elements;
-        unsigned int elementSize;
-        void * geometryData;    // size elements*elementSize
-    };*/
-
-    TransientModelData ModelManager::convertObjToInternal(Model &model, RenderContext &renderContext, ModelObject &obj);
-
     void populateMaterial(RenderContext & renderContext, Material *material, ObjMaterial &objMaterial);
     TextureInfo loadTexture(RenderContext & renderContext, const std::string &textureName);
+
+
+
+    Handle buildLoadModelCommand(ModelGeometryLoadData &data);
+    void buildSetMaterialCommand(GPU::UniformBufferObject materialUniform, GPU::Uniform::Material &material);
 
 
     // Transient data pools priort to laod into GPU
