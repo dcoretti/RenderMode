@@ -8,11 +8,10 @@ RenderContext::RenderContext(size_t bufferObjectPoolSize,
     size_t modelPoolSize,
     size_t vaoPoolSize)
     :bufferObjectPool(IndexedPool<GPU::BufferObject>(bufferObjectPoolSize)),
-    geometryBufferLayoutPool(IndexedPool<GPU::GeometryBufferLayout>(geometryBufferLayoutPoolSize)),
     shaderProgramsPool(IndexedPool<GPU::ShaderProgram>(shaderProgramsPoolSize)),
     materialPool(IndexedPool<Material>(materialPoolSize)),
     meshPool(IndexedPool<Mesh>(meshPoolSize)),
-    modelPool(IndexedPool<Model>(modelPoolSize)),
+    modelGeometryPool(IndexedPool<ModelGeometryLoadData>(modelPoolSize)),
     vaoPool(IndexedPool<GPU::VertexArrayObject>(vaoPoolSize))
 {
 }

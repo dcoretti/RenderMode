@@ -145,8 +145,8 @@ Handle ModelManager::loadModel(std::string fname, RenderContext &renderContext) 
     // TODO consider moving this to a constructor with rendercontext?
     ModelObject obj = ObjLoader::load(fname);
 
-    Handle modelHandle = renderContext.modelPool.createObject();
-    Model *model = renderContext.modelPool.get(modelHandle);
+    Handle modelHandle = renderContext.modelGeometryPool.createObject();
+    ModelGeometryLoadData *model = renderContext.modelGeometryPool.get(modelHandle);
     // Preallocate space for graphics API handle to GPU buffer that render engine can populate on load commands.
     model->vao = renderContext.vaoPool.createObject();
     model->vertices = renderContext.bufferObjectPool.createObject();
@@ -154,9 +154,9 @@ Handle ModelManager::loadModel(std::string fname, RenderContext &renderContext) 
     model->normals = renderContext.bufferObjectPool.createObject();
     model->indices = renderContext.bufferObjectPool.createObject();
 
-    model->vertexLayout = renderContext.geometryBufferLayoutPool.createObject();
-    model->normalsLayout = renderContext.geometryBufferLayoutPool.createObject();
-    model->texCoordsLayout = renderContext.geometryBufferLayoutPool.createObject();
+    //model->vertexLayout = renderContext.geometryBufferLayoutPool.createObject();
+    //model->normalsLayout = renderContext.geometryBufferLayoutPool.createObject();
+    //model->texCoordsLayout = renderContext.geometryBufferLayoutPool.createObject();
 
     TransientModelData transientModelData = convertObjToInternal(*model, renderContext, obj);
 
@@ -164,3 +164,44 @@ Handle ModelManager::loadModel(std::string fname, RenderContext &renderContext) 
 
     return modelHandle;
 }
+
+
+
+////////////////////////////////////////////////////////////////////
+// Create Model commands down here
+
+
+
+//
+//Handle CommandBuilder::buildLoadModelCommand(ModelGeometryLoadData &data) {
+//    Handle loadVao = buildInitializeAndSetVertexArrayCommand(data.vao);
+//    Handle loadVertices = buildLoadVertexArrayCommandWithParent(data.vertexData,
+//        data.vertices,
+//        GPU::ShaderAttributeBinding::VERTICES,
+//        data.vertexLayout,
+//        loadVao);
+//    Handle loadTextures = buildLoadVertexArrayCommandWithParent(data.texCoordsData,
+//        data.texCoords,
+//        GPU::ShaderAttributeBinding::UV,
+//        data.texCoordsLayout,
+//        loadVao);
+//    Handle loadNormals = buildLoadVertexArrayCommandWithParent(data.normalsData,
+//        data.normals,
+//        GPU::ShaderAttributeBinding::NORMALS,
+//        data.normalsLayout,
+//        loadVao);
+//    Handle loadIndices = buildLoadIndexArrayCommandWithParent(data.indicesData, data.indices, loadVao);
+//
+//    return loadVao;
+//}
+//
+//Handle CommandBuilder::buildSetMaterialCommand(Handle materialUniform, GPU::Uniform::Material &material) {
+//    Handle materialUniforms = buildUpdateUniformBufferCommand(materialUniform,
+//        &material,
+//        sizeof(GPU::Uniform::Material), 0,
+//        Handle());
+//
+//    Handle diffuseTexture;
+//    Handle ambientTexture;
+//    Handle specularTexture;
+//}

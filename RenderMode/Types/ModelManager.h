@@ -3,7 +3,6 @@
 #include "../Command/CommandBuilder.h"
 
 #include "Application/Model.h"
-#include "Application/Mesh.h"
 #include "Application/Material.h"
 
 #include <glm/glm.hpp>

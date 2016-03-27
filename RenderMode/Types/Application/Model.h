@@ -1,30 +1,45 @@
 #pragma once
 
+#include "../../Types/CommonTypes.h"
 #include "../Memory/Handle.h"
-#include "Mesh.h"
 
+/*
+Representation of a single mesh using a material.  Individual object may have several materials and are therefore
+split by material
+*/
+struct Mesh {
+    Handle material;
+    unsigned int indexOffset;   // index of first vertex in buffer for this mesh.
+    unsigned int numElements;
+};
+
+
+// 2.  Used to draw a loaded model.
 struct Model {
-    ~Model() { 
-        // kind of ugly but do this until the data is pooled somewhere.
-        if (meshes != nullptr) {
-            delete[] meshes; 
-        } 
-    }   
+    Handle vao;
 
-    // rendering engine identifiers for the buffers
-    // Only really used if updating the actual data, except for vao
+    int numMeshes;
+    Mesh *meshes;
+};
+
+// 1.  fill out this and construct load commands which will fill out the 
+struct ModelGeometryLoadData {
+    // To be filled out
     Handle vao;
     Handle vertices;
     Handle normals;
     Handle texCoords;
     Handle indices;
 
-    // how is the data laid out in memory
-    Handle vertexLayout;
-    Handle normalsLayout;
-    Handle texCoordsLayout;
+    // how is the data laid out in system buffers for loading
+    GPU::GeometryBufferLayout vertexLayout;
+    GPU::GeometryBufferLayout normalsLayout;
+    GPU::GeometryBufferLayout texCoordsLayout;
+    GPU::GeometryBufferLayout indicesLayout;
 
 
-    int numMeshes; 
-    Handle * meshes{ nullptr };
+    SystemBuffer vertexData;
+    SystemBuffer normalsData;
+    SystemBuffer texCoordsData;
+    SystemBuffer indicesData;
 };

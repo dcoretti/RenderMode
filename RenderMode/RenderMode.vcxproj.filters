@@ -95,9 +95,6 @@
     <ClInclude Include="Types\Application\Material.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Types\Application\Mesh.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Types\Application\Model.h">
       <Filter>Header Files</Filter>
     </ClInclude>

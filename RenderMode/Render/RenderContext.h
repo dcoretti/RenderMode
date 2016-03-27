@@ -4,7 +4,6 @@
 #include "../Types/GPU/GeometryTypes.h"
 #include "../Types/GPU/ShaderTypes.h"
 #include "../Types/Application/Material.h"
-#include "../Types/Application/Mesh.h"
 #include "../Types/Application/Model.h"
 
 
@@ -23,10 +22,10 @@ struct RenderContext {
     // Right now this is the only way we can get the render engine to know where to put the id it generates
     IndexedPool<GPU::BufferObject> bufferObjectPool;
     IndexedPool<GPU::VertexArrayObject> vaoPool;
-    IndexedPool<GPU::GeometryBufferLayout> geometryBufferLayoutPool;
+    //IndexedPool<GPU::GeometryBufferLayout> geometryBufferLayoutPool;
     IndexedPool<GPU::ShaderProgram> shaderProgramsPool; // overkill with overhead?
 
     IndexedPool<Material> materialPool;
     IndexedPool<Mesh> meshPool;
-    IndexedPool<Model> modelPool;  // All active models in a given context
+    IndexedPool<ModelGeometryLoadData> modelGeometryPool;  // All active models in a given context
 };

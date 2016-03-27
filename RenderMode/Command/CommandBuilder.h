@@ -24,11 +24,6 @@ class CommandBuilder {
 public:
     CommandBuilder(CommandBucket &cmdBucket, RenderContext &renderContext) 
         : cmdBucket(&cmdBucket), renderContext(&renderContext) { }
-
-    /* Public api level methods (models, meshes) */
-    Handle buildDrawModelCommand(const Model & mesh);
-    Handle buildLoadModelCommand(Model & model, TransientModelData &modelData);
-
     /*  Low level methods (underlying data-types and cmd definitions) */
 
 
@@ -50,7 +45,7 @@ public:
     Handle buildSetMatrixUniformCommand(int shaderUniform, float* matrixData, int numMatrices, Handle parent = Handle());
     Handle buildSetVec3UniformCommand(int shaderUniform, float x, float y, float z, Handle parent = Handle());
     Handle buildSetFloatUniformCommand(int shaderUniform, float *vals, int count, Handle parent = Handle());
-    Handle buildUpdateUniformBufferCommand(Handle uboHandle, void * data, size_t bufferSize, size_t offset, Handle parent);
+    Handle buildUpdateUniformBufferCommand(GPU::UniformBufferObject &ubo, void * data, size_t bufferSize, size_t offset, Handle parent);
     Handle buildCreateUniformBufferCommand(Handle uboHandle, size_t bufferSize, void * data,  int bufferBlockBinding, Handle parent = Handle());
 
     /* Draw Commands */

@@ -172,20 +172,24 @@ public:
        
         if (setupUBO) {
             light.location = glm::vec3(1.0f);//glm::vec3(0.0f, 5.0f, 1.0f);
-            light.diffuse = glm::vec3(1.0f);//glm::vec3(1.0f, 0.0f, 0.0f);
+            light.diffuse = glm::vec3(0.1f, 0.1f, 0.1f);//glm::vec3(1.0f, 0.0f, 0.0f);
             light.specular = glm::vec3(1.0f);//glm::vec3(0.0f, 1.0f, 0.0f);
             material.ambient = glm::vec3(0.0f);
             material.diffuse = glm::vec3(0.0f , 1.0f, 0.0f);
             material.specular = glm::vec3(0.0f,1.0f,0.0f);
 
-            lightUbo = renderContext->bufferObjectPool.createObject();
-            materialUbo = renderContext->bufferObjectPool.createObject();
-            lightHandle = cmdBuilder->buildCreateUniformBufferCommand(lightUbo, 
+            lightUboHandle = renderContext->bufferObjectPool.createObject();
+            lightUbo = renderContext->bufferObjectPool.get(lightUboHandle);
+            materialUboHandle = renderContext->bufferObjectPool.createObject();
+            materialUbo = renderContext->bufferObjectPool.get(materialUboHandle);
+
+
+            lightHandle = cmdBuilder->buildCreateUniformBufferCommand(lightUboHandle, 
                 sizeof(GPU::Uniform::LightSource), 
                 (void *) &light, 
                 GPU::Uniform::defaultLightSourceUniformBlockBinding);
             
-            materialHandle = cmdBuilder->buildCreateUniformBufferCommand(materialUbo,
+            materialHandle = cmdBuilder->buildCreateUniformBufferCommand(materialUboHandle,
                 sizeof(GPU::Uniform::Material),
                 (void *) &material,
                 GPU::Uniform::defaultMaterialUniformBlockBinding);
@@ -368,8 +372,8 @@ public:
         cmdBuilder->buildSetMatrixUniformCommand(shader->uniformLocations.v, glm::value_ptr(v), 1, drawCmd);
         cmdBuilder->buildSetMatrixUniformCommand(shader->uniformLocations.m, glm::value_ptr(m), 1, drawCmd);
 
-        cmdBuilder->buildUpdateUniformBufferCommand(materialUbo, (void*)&material, sizeof(GPU::Uniform::Material), 0, drawCmd);
-        cmdBuilder->buildUpdateUniformBufferCommand(lightUbo, (void*)&light, sizeof(GPU::Uniform::LightSource), 0, drawCmd);
+        cmdBuilder->buildUpdateUniformBufferCommand(*materialUbo, (void*)&material, sizeof(GPU::Uniform::Material), 0, drawCmd);
+        cmdBuilder->buildUpdateUniformBufferCommand(*lightUbo, (void*)&light, sizeof(GPU::Uniform::LightSource), 0, drawCmd);
 
         cmdBuilder->buildDrawArraysCommandWithParent(*renderContext->vaoPool.get(vaoHandle), drawContext, drawCmd);
     }
@@ -388,8 +392,12 @@ public:
     GPU::ShaderData vertexShaderData;
     GPU::ShaderData fragmentShaderData;
     Handle setShaderCmd;
-    Handle lightUbo;
-    Handle materialUbo;
+
+    Handle lightUboHandle;
+    GPU::UniformBufferObject* lightUbo;
+    Handle materialUboHandle;
+    GPU::UniformBufferObject* materialUbo;
+
     GPU::Uniform::LightSource light;
     GPU::Uniform::Material material;
 

@@ -182,7 +182,7 @@ const Command::DispatchCommand CommandData<InitializeUniformBufferCommand>::disp
 
 void dispatchUpdateUniformBuffer(const void *data, RenderContext &context);
 struct UpdateUniformBufferCommand : public CommandData<UpdateUniformBufferCommand> {
-    Handle uboHandle;
+    GPU::UniformBufferObject ubo;
     void * data;
     size_t bufferSize;
     size_t offset;

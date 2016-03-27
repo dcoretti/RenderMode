@@ -191,20 +191,17 @@ void RenderApiDispatch::setVec3FloatUniform(RenderContext &context, const SetVec
 void RenderApiDispatch::initializeUniformBuffer(RenderContext &context, const InitializeUniformBufferCommand * cmd) {
     GPU::UniformBufferObject *ubo = context.bufferObjectPool.get(cmd->uboHandle);
     glGenBuffers(1, &ubo->bufferId);
+    glBindBufferBase(GL_UNIFORM_BUFFER, cmd->bufferBlockBinding, ubo->bufferId);
     glBindBuffer(GL_UNIFORM_BUFFER, ubo->bufferId);
     glBufferData(GL_UNIFORM_BUFFER, cmd->bufferSize, cmd->data, GL_DYNAMIC_DRAW);
     // TODO fix this
     // for some reason null and this works, but null followed by subdata in a separate command does not...
     //glBufferSubData(GL_UNIFORM_BUFFER, 0, cmd->bufferSize, cmd->data);
-
-    //glUniformBlockBinding(GL_UNIFORM_BUFFER, cmd->uniformBlockIndex, cmd->blockBinding);
-    glBindBufferBase(GL_UNIFORM_BUFFER, cmd->bufferBlockBinding, ubo->bufferId);
     glBindBuffer(GL_UNIFORM_BUFFER, 0);
 }
 
 void RenderApiDispatch::updateUniformBuffer(RenderContext &context, const UpdateUniformBufferCommand * cmd) {
-    GPU::UniformBufferObject *ubo = context.bufferObjectPool.get(cmd->uboHandle);
-    glBindBuffer(GL_UNIFORM_BUFFER, ubo->bufferId);
+    glBindBuffer(GL_UNIFORM_BUFFER, cmd->ubo.bufferId);
     // TODO should use glMapBuffer for frequent changes?
     glBufferSubData(GL_UNIFORM_BUFFER, cmd->offset, cmd->bufferSize, cmd->data);
     glBindBuffer(GL_UNIFORM_BUFFER, 0);

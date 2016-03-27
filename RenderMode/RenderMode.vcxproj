@@ -163,7 +163,6 @@
     <ClInclude Include="Types\CommonTypes.h" />
     <ClInclude Include="Types\GPU\GeometryTypes.h" />
     <ClInclude Include="Types\Application\Material.h" />
-    <ClInclude Include="Types\Application\Mesh.h" />
     <ClInclude Include="Types\Application\Model.h" />
     <ClInclude Include="Types\GPU\ShaderTypes.h" />
     <ClInclude Include="Types\ModelManager.h" />
