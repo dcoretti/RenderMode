@@ -17,5 +17,3 @@ struct Material {
     Handle ambientTexture;
     Handle specularTexture;
 };
-
-

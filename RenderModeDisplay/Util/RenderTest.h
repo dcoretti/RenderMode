@@ -160,7 +160,6 @@ public:
 
     int setupShaders(const char * vertex,const char *frag, bool setupUBO = false) {
         int executed = 0;
-        CommandKey key;
         // Load and set shader
         shaderProgramHandle = renderContext->shaderProgramsPool.createObject();
         vertexShaderData.source = vertex;
@@ -194,9 +193,9 @@ public:
                 GPU::Uniform::defaultMaterialUniformBlockBinding);
         }
 
-        renderQueue.submit(&loadShaderCmd, &key, 1);
-        renderQueue.submit(&lightHandle, &key, 1);
-        renderQueue.submit(&materialHandle, &key, 1);
+        renderQueue.submit(loadShaderCmd, CommandKey());
+        renderQueue.submit(lightHandle, CommandKey());
+        renderQueue.submit(materialHandle, CommandKey());
 
         int executedStart = executed;
         executed += renderQueue.execute(*cmdBucket, *renderContext);
@@ -205,7 +204,7 @@ public:
         setShaderCmd = cmdBuilder->buildSetShaderProgramCommand(*shader);
 
 
-        renderQueue.submit(&setShaderCmd, &key, 1);
+        renderQueue.submit(setShaderCmd, CommandKey());
         cout << "Executed by shader creation: " << executed - executedStart << endl;
 
         return executed;
@@ -292,7 +291,6 @@ public:
 
     void texLoad(bool withLight = false) {
         int executed = 0;
-        CommandKey key;
 
         std::string vertTex;
         std::string fragTex;
@@ -345,7 +343,7 @@ public:
             vaoParentCommand);
 
 
-        renderQueue.submit(&vaoParentCommand, &key, 1);
+        renderQueue.submit(vaoParentCommand, CommandKey());
 
         executed += renderQueue.execute(*cmdBucket, *renderContext);
 
@@ -379,8 +377,7 @@ public:
 
 
     void draw() {
-        CommandKey key;
-        renderQueue.submit(&drawCmd, &key, 1);
+        renderQueue.submit(drawCmd, CommandKey());
         renderQueue.execute(*cmdBucket, *renderContext);
     }
 

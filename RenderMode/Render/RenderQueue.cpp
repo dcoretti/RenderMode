@@ -4,7 +4,7 @@ RenderQueue::RenderQueue(): RenderQueue(defaultQueueSize) {
 }
 
 RenderQueue::RenderQueue(unsigned int maxCommands): maxCommands(maxCommands) {
-    queue = new CommandSet[maxCommands];
+    queue = new Handle[maxCommands];
     
 }
 
@@ -12,12 +12,11 @@ RenderQueue::~RenderQueue() {
     delete[] queue;
 }
 
-
-bool RenderQueue::submit(Handle * cmds, CommandKey *keys, size_t size) {
+bool RenderQueue::submit(Handle cmd, CommandKey key) {
     if (curCommands == maxCommands) {
         return false;
     }
-    queue[tail] = CommandSet(cmds, keys, size);
+    queue[tail] = cmd;
     tail = (tail + 1) % maxCommands;
 
     curCommands++;
@@ -29,16 +28,12 @@ unsigned int RenderQueue::numCommands() {
 }
 
 
-CommandSet * RenderQueue::pop() {
-    if (curCommands == 0) {
-        return nullptr;
-    }
-
-    CommandSet *cmdSet = &queue[head];
+Handle RenderQueue::pop() {
+    Handle h = queue[head];
     head = (head + 1) % maxCommands;
 
     curCommands--;
-    return cmdSet;
+    return h;
 }
 
 bool RenderQueue::isEmpty() {
@@ -48,15 +43,12 @@ bool RenderQueue::isEmpty() {
 int RenderQueue::execute(CommandBucket &cmdBucket, RenderContext &context) {
     int commandsRun = 0;
     while (!isEmpty()) {
-        CommandSet * cmdSet = pop();
-        for (int i = 0; i < cmdSet->numCommands; i++) {
-            Handle handle = cmdSet->cmds[i];
-            Command * cmd = cmdBucket.getCommand(handle);
-            while (cmd != nullptr) {
-                cmd->dispatch(cmdBucket.getDataFromCommand(cmd), context);
-                cmd = cmd->next;
-                commandsRun++;
-            }
+        Handle handle = pop();
+        Command * cmd = cmdBucket.getCommand(handle);
+        while (cmd != nullptr) {
+            cmd->dispatch(cmdBucket.getDataFromCommand(cmd), context);
+            cmd = cmd->next;
+            commandsRun++;
         }
     }
     return commandsRun;

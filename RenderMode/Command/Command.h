@@ -43,7 +43,8 @@ struct CommandData {
 };
 
 struct CommandKey {
-    int tmp;
+    CommandKey() = default; // TODO remove this when command keys implemented
+    uint16_t materialId;
 };
 
 

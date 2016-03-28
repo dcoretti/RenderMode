@@ -13,6 +13,7 @@
 #include <vector>
 
 #include "../Util/ObjLoader.h"
+#include "../Render/RenderQueue.h"
 #include "../Render/RenderContext.h"
 
 using std::vector;
@@ -49,8 +50,9 @@ private:
 
 
 
-    Handle buildLoadModelCommand(ModelGeometryLoadData &data);
-    void buildSetMaterialCommand(GPU::UniformBufferObject materialUniform, GPU::Uniform::Material &material);
+    void submitModelLoadCommands(ModelGeometryLoadData &data, RenderQueue &renderQueue);
+    
+    void submitModelRenderCommands(Model &model, RenderContext &context, RenderQueue &renderQueue);
 
 
     // Transient data pools priort to laod into GPU

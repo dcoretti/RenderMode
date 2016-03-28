@@ -2,18 +2,6 @@
 #include "../Command/Command.h"
 #include "../Command/CommandBucket.h"
 #include "../Render/RenderContext.h"
-/*
-    Queue of commands submitted by command buckets.
-    Actually a ring buffer but sure whatever.
-*/
-struct CommandSet {
-    CommandSet() = default;
-    CommandSet(Handle *cmds, CommandKey *keys, size_t numCommands) :
-        cmds(cmds), keys(keys), numCommands(numCommands) {}
-    Handle *cmds{ nullptr };
-    CommandKey *keys{ nullptr };
-    size_t numCommands{ 0 };
-};
 
 class RenderQueue {
 public:
@@ -23,19 +11,14 @@ public:
     RenderQueue();
     ~RenderQueue();
 
-
-    bool submit(Handle *cmds, CommandKey *keys, size_t size);
+    bool submit(Handle cmd, CommandKey key);
     int execute(CommandBucket &cmdBucket, RenderContext &context);
-    CommandSet * pop();
+    Handle pop();
 
     bool isEmpty();
     unsigned int numCommands();
 private:
-
-
-
-
-    CommandSet *queue;
+    Handle *queue;
     int head{ 0 };
     unsigned int tail{ 0 };
 

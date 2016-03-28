@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../../Types/CommonTypes.h"
+#include "../GPU/GeometryTypes.h"
 #include "../Memory/Handle.h"
 
 /*
@@ -9,8 +10,7 @@ split by material
 */
 struct Mesh {
     Handle material;
-    unsigned int indexOffset;   // index of first vertex in buffer for this mesh.
-    unsigned int numElements;
+    GPU::DrawContext drawContext;
 };
 
 

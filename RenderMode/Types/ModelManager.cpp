@@ -85,10 +85,6 @@ Handle ModelManager::loadModel(std::string fname, RenderContext &renderContext) 
     }
 
     // initialize containers for completed model/meshes
-    
-
-
-
 
     /*
     for each face
@@ -120,7 +116,7 @@ Handle ModelManager::loadModel(std::string fname, RenderContext &renderContext) 
     for (vector<int> faceVector : groupEntry.second.faces) {
         Mesh * mesh = &model->meshes[curMaterial];
 
-        mesh->indexOffset = curIndex;   // starting index for all faces (v/t/n index) on this mesh
+        mesh->drawContext.indexOffset = curIndex;   // starting index for all faces (v/t/n index) on this mesh
 
         for (int i = 0; i < faceVector.size(); i += 3) {
             // face elements are in form v/t/n with 1 as first index. 0 indicates missing element
@@ -139,11 +135,10 @@ Handle ModelManager::loadModel(std::string fname, RenderContext &renderContext) 
                 indices[curIndex++] = seenVtnCombinations[indexedCoord];
             }
         }
-        mesh->numElements = curIndex;
+        mesh->drawContext.numElements = curIndex;
         mesh->material = materialHandles[groupEntry.second.materialStates[curMaterial].materialName];
         curMaterial++;
     }
-
 
 
     Handle modelHandle = renderContext.modelGeometryPool.createObject();
@@ -161,18 +156,11 @@ Handle ModelManager::loadModel(std::string fname, RenderContext &renderContext) 
         Indices(renderContext.bufferObjectPool.createObject(),
             SystemBuffer(indices, curCoordIndex * sizeof(unsigned int))));
 
+
     return modelHandle;
 }
 
-
-
-////////////////////////////////////////////////////////////////////
-// Create Model commands down here
-
-
-
-
-Handle ModelManager::buildLoadModelCommand(ModelGeometryLoadData &data) {
+void ModelManager::submitModelLoadCommands(ModelGeometryLoadData &data, RenderQueue &renderQueue) {
     Handle loadVao = cmdBuilder->buildInitializeAndSetVertexArrayCommand(data.vao);
     Handle loadVertices = cmdBuilder->buildLoadVertexArrayCommandWithParent(data.vertices.bufferData,
         data.vertices.bufferObject,
@@ -191,16 +179,16 @@ Handle ModelManager::buildLoadModelCommand(ModelGeometryLoadData &data) {
         loadVao);
     Handle loadIndices = cmdBuilder->buildLoadIndexArrayCommandWithParent(data.indices.bufferData, data.indices.bufferObject, loadVao);
 
-    return loadVao;
+    renderQueue.submit(loadVao, CommandKey());
 }
 
-void ModelManager::buildSetMaterialCommand(GPU::UniformBufferObject materialUniform, GPU::Uniform::Material &material) {
-    Handle materialUniforms = cmdBuilder->buildUpdateUniformBufferCommand(materialUniform,
-        &material,
-        sizeof(GPU::Uniform::Material), 0,
-        Handle());
 
-    Handle diffuseTexture;
-    Handle ambientTexture;
-    Handle specularTexture;
+void ModelManager::submitModelRenderCommands(Model &model, RenderContext &renderContext, RenderQueue &renderQueue) {
+
+
+    for (int i = 0; i < model.numMeshes; i++) {
+        Mesh &m = model.meshes[i];
+        Handle meshCmd = cmdBuilder->buildDrawIndexedCommand(*renderContext.bufferObjectPool.get(model.vao), m.drawContext);
+    }
+    //cmdBuilder->buildDrawIndexedCommand(vaoid )
 }
