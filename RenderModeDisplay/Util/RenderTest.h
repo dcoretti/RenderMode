@@ -299,8 +299,8 @@ public:
         // Setup shader
         std::string vertTex;
         std::string fragTex;
-        loadTextFile("Util/Lighting.vert", vertTex);
-        loadTextFile("Util/Lighting.frag", fragTex);
+        loadTextFile("Util/BasicCamera.vert", vertTex);
+        loadTextFile("Util/Basic.frag", fragTex);
         setupShaders(vertTex.c_str(), fragTex.c_str(), true);
 
         // Load model into gpu
@@ -321,7 +321,7 @@ public:
         // Camera transformations
         p = glm::perspective(glm::radians(90.0f), 640.0f / 480.0f, 0.1f, 100.0f);
         m = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -5.0f));
-        v = glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+        v = glm::lookAt(glm::vec3(-1.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, 1.0f, 0.0f));
         mvp = p * v * m;
         mv = v * m;
 

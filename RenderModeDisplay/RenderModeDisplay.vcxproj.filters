@@ -27,5 +27,8 @@
   <ItemGroup>
     <None Include="Util\Lighting.vert" />
     <None Include="Util\Lighting.frag" />
+    <None Include="Util\Basic.vert" />
+    <None Include="Util\Basic.frag" />
+    <None Include="Util\BasicCamera.vert" />
   </ItemGroup>
 </Project>

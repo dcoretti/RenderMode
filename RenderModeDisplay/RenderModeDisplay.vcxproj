@@ -30,6 +30,9 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <None Include="Util\Basic.frag" />
+    <None Include="Util\Basic.vert" />
+    <None Include="Util\BasicCamera.vert" />
     <None Include="Util\Lighting.frag" />
     <None Include="Util\Lighting.vert" />
   </ItemGroup>
