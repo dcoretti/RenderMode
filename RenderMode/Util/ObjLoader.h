@@ -39,6 +39,18 @@ struct MaterialState {
     std::string materialName;
 };
 
+
+
+/// TODO NEXT - replace inner fec of faces.  should be vector<vector<faces>> not face element 1 = 0-2, 2= 3-5 :((
+struct FaceElement {
+    FaceElement(int v, int t, int n) : v(v), t(t), n(n) {}
+    FaceElement() = default;
+    // 0 is an invalid index with obj format (1-based)
+    int v{ 0 };
+    int t{ 0 };
+    int n{ 0 };
+};
+
 struct Group {
     Group() {}
     Group(string &groupName) : groupName(groupName) { }
@@ -48,7 +60,7 @@ struct Group {
     // each face element will have 3 components regardless of what was specified.  Missing vt/vn will be denoted by 0 
     // **NOTE: all indices are 1 based in obj. 0 indicates a missing element which has been filled in
     // Each vector of face indices corresponds to a material state 1:1.  ex: materialStates[0] has a list of faces found in faces[0][0 - N]
-    vector<vector<int> > faces;	// assumed v/n/t format so [0] is v, [1] is t, [2] is n, [3] is v1, etc.
+    vector<vector<FaceElement> > faces;	// assumed v/n/t format so [0] is v, [1] is t, [2] is n, [3] is v1, etc.
                                 // mtl? organize by starting index of faces that the mtl applies to.
                                 // in free form mode mtl applies to vertex indices too..
     vector<MaterialState> materialStates;
@@ -78,7 +90,7 @@ public:
     static const string defaultGroupName;
     static const string defaultMaterialName;
 
-    static ModelObject load(std::string fname);
+    static ModelObject load(std::string &fname);
     static ModelObject load(istream &in);
 
 private:    

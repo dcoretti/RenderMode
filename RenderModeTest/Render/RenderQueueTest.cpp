@@ -6,23 +6,22 @@
 
 TEST(RenderQueueTest, testSubmit) {
     Handle cmd;
+    cmd.index = 0;
+    cmd.version = 0;
     CommandKey key;
+    key.materialId = 1;
     RenderQueue q(1);
     EXPECT_TRUE(q.isEmpty());
-    EXPECT_TRUE(q.submit(&cmd, &key, 1));
+    EXPECT_TRUE(q.submit(cmd, key));
 
     EXPECT_EQ(1, q.numCommands());
-    EXPECT_FALSE(q.submit(&cmd, &key, 1));
+    EXPECT_FALSE(q.submit(cmd, key));
 }
 
 
-void assertSetEqualSingleCmd(CommandSet *set, Handle h, CommandKey k) {
-    EXPECT_NE(nullptr, set);
-    EXPECT_EQ(1, set->numCommands);
-
-    EXPECT_EQ(set->cmds[0].index, h.index);
-    EXPECT_EQ(set->cmds[0].version, h.version);
-    EXPECT_EQ(set->keys[0].tmp, k.tmp);
+void assertSetEqualSingleCmd(Handle actual, Handle expectedHandle, CommandKey k) {
+    EXPECT_EQ(actual.index, expectedHandle.index);
+    EXPECT_EQ(actual.version, expectedHandle.version);
 }
 
 TEST(RenderQueueTest, testExecute) {
@@ -30,10 +29,10 @@ TEST(RenderQueueTest, testExecute) {
     cmd.index = 123;
 
     CommandKey key;
-    key.tmp = 5;
+    key.materialId = 5;
 
     RenderQueue q(1);
-    EXPECT_TRUE(q.submit(&cmd, &key, 1));
+    EXPECT_TRUE(q.submit(cmd, key));
     
     assertSetEqualSingleCmd(q.pop(), cmd, key);
 }
@@ -43,18 +42,18 @@ TEST(RenderQueueTest, testPopOrder) {
     cmd1.index = 123;
     cmd1.version = 2;
     CommandKey key1;
-    key1.tmp = 5;
+    key1.materialId = 5;
 
     Handle cmd2;
     cmd2.index = 456;
     cmd2.version = 3;
 
     CommandKey key2;
-    key2.tmp = 6;
+    key2.materialId = 6;
 
     RenderQueue q(2);
-    EXPECT_TRUE(q.submit(&cmd1, &key1, 1));
-    EXPECT_TRUE(q.submit(&cmd2, &key2, 1));
+    EXPECT_TRUE(q.submit(cmd1, key1));
+    EXPECT_TRUE(q.submit(cmd2, key2));
 
     assertSetEqualSingleCmd(q.pop(), cmd1, key1);
     EXPECT_EQ(1, q.numCommands());
@@ -70,25 +69,25 @@ TEST(RenderQueueTest, testWrap) {
     cmd1.index = 123;
     cmd1.version = 2;
     CommandKey key1;
-    key1.tmp = 5;
+    key1.materialId = 5;
 
     Handle cmd2;
     cmd2.index = 456;
     cmd2.version = 3;
     CommandKey key2;
-    key2.tmp = 6;
+    key2.materialId = 6;
 
     Handle cmd3;
     cmd3.index = 789;
     cmd2.version = 4;
     CommandKey key3;
-    key3.tmp = 7;
+    key3.materialId = 7;
 
-    EXPECT_TRUE(q.submit(&cmd1, &key1, 1));
-    EXPECT_TRUE(q.submit(&cmd2, &key2, 1));
+    EXPECT_TRUE(q.submit(cmd1, key1));
+    EXPECT_TRUE(q.submit(cmd2, key2));
     assertSetEqualSingleCmd(q.pop(), cmd1, key1);
 
-    EXPECT_TRUE(q.submit(&cmd3, &key3, 1));
+    EXPECT_TRUE(q.submit(cmd3, key3));
     assertSetEqualSingleCmd(q.pop(), cmd2, key2);
     assertSetEqualSingleCmd(q.pop(), cmd3, key3);
 

@@ -2,6 +2,7 @@
 #pragma once
 #include <string>
 
+#include "Types/Application//Model.h"
 #include "Types\ModelManager.h"
 #include "Command\CommandBucket.h"
 #include "Command\CommandBuilder.h"
@@ -147,7 +148,7 @@ public:
         renderContext = new RenderContext(1024, 1024, 1024, 1024, 1024);
         cmdBucket = new CommandBucket(100, 1024 * 1024 * 5);
         cmdBuilder = new CommandBuilder(*cmdBucket, *renderContext);
-        mgr = new ModelManager(1024, 1024, cmdBuilder);
+        mgr = new ModelManager(1024 * 30, 1024, cmdBuilder);
 
     }
 
@@ -205,6 +206,8 @@ public:
 
 
         renderQueue.submit(setShaderCmd, CommandKey());
+        executed += renderQueue.execute(*cmdBucket, *renderContext);
+
         cout << "Executed by shader creation: " << executed - executedStart << endl;
 
         return executed;
@@ -288,6 +291,55 @@ public:
     //    drawCmd = cmdBuilder->buildDrawIndexedCommand(*renderContext->vaoPool.get(vaoHandle), drawContext);
     //}
 
+    Model * model;
+    void modelLoad() {
+        model = mgr->loadModelGeometry(std::string("cube.obj"), *renderContext);
+        ModelGeometryLoadData *geometryData = renderContext->modelGeometryPool.get(model->modelGeometryLoadDataHandle);
+
+        // Setup shader
+        std::string vertTex;
+        std::string fragTex;
+        loadTextFile("Util/Lighting.vert", vertTex);
+        loadTextFile("Util/Lighting.frag", fragTex);
+        setupShaders(vertTex.c_str(), fragTex.c_str(), true);
+
+        // Load model into gpu
+        mgr->submitModelLoadCommands(model->modelGeometryLoadDataHandle, renderQueue, *renderContext);
+
+        Handle texBuffer = renderContext->bufferObjectPool.createObject();
+        GPU::TextureBufferLayout textureLayout;
+        textureLayout.width = w;
+        textureLayout.height = h;
+        textureLayout.textureFormat = GPU::TextureFormat::RGB;
+        Handle loadTexCmd = cmdBuilder->buildLoadTextureCommand(SystemBuffer((void*)&texData, sizeof(texData)),
+            textureLayout,
+            texBuffer);
+        renderQueue.submit(loadTexCmd, CommandKey());
+        int exec = renderQueue.execute(*cmdBucket, *renderContext);
+        cout << "executed " << exec << " load cmds for model!" << endl;
+
+        // Camera transformations
+        p = glm::perspective(glm::radians(90.0f), 640.0f / 480.0f, 0.1f, 100.0f);
+        m = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -5.0f));
+        v = glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+        mvp = p * v * m;
+        mv = v * m;
+
+        GPU::ShaderProgram *shader = renderContext->shaderProgramsPool.get(shaderProgramHandle);
+        drawCmd = cmdBuilder->buildSetMatrixUniformCommand(shader->uniformLocations.mvp, glm::value_ptr(mvp), 1);
+        cmdBuilder->buildSetMatrixUniformCommand(shader->uniformLocations.mv, glm::value_ptr(mv), 1, drawCmd);
+        cmdBuilder->buildSetMatrixUniformCommand(shader->uniformLocations.v, glm::value_ptr(v), 1, drawCmd);
+        cmdBuilder->buildSetMatrixUniformCommand(shader->uniformLocations.m, glm::value_ptr(m), 1, drawCmd);
+
+        cmdBuilder->buildUpdateUniformBufferCommand(*materialUbo, (void*)&material, sizeof(GPU::Uniform::Material), 0, drawCmd);
+        cmdBuilder->buildUpdateUniformBufferCommand(*lightUbo, (void*)&light, sizeof(GPU::Uniform::LightSource), 0, drawCmd);
+
+
+        for (int i = 0; i < model->numMeshes; i++) {
+            Mesh &m = model->meshes[i];
+            cmdBuilder->buildDrawIndexedCommand(*renderContext->bufferObjectPool.get(model->vao), m.drawContext, drawCmd);
+        }
+    }
 
     void texLoad(bool withLight = false) {
         int executed = 0;
@@ -337,7 +389,7 @@ public:
         textureLayout.width = w;
         textureLayout.height = h;
         textureLayout.textureFormat = GPU::TextureFormat::RGB;
-        Handle loadTexCmd = cmdBuilder->buildLoadTextureWithParent(SystemBuffer((void*)&texData, sizeof(texData)), 
+        Handle loadTexCmd = cmdBuilder->buildLoadTextureCommand(SystemBuffer((void*)&texData, sizeof(texData)),
             textureLayout, 
             texBuffer, 
             vaoParentCommand);

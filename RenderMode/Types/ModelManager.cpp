@@ -58,14 +58,19 @@ void ModelManager::populateMaterial(RenderContext & renderContext, Material *mat
     material->specularTexture = loadTexture(renderContext, objMaterial.map_ks).textureHandle;
 }
 
-Handle ModelManager::loadModel(std::string fname, RenderContext &renderContext) {
+Model * ModelManager::loadModelGeometry(std::string &fname, RenderContext &renderContext) {
     // TODO consider moving this to a constructor with rendercontext?
     ModelObject obj = ObjLoader::load(fname);
 
     // TODO these should be allocated on some pool
     map<string, Handle> materialHandles;
     size_t vSize = obj.vertices.size();
-    size_t indexCount = 0;  // find a way to get full index count TODO <---------------------------------------------------
+    size_t indexCount = 0;
+
+    // :( upper bound on index count since the rest of this process will only deduplicate indices.
+    for (const auto &g : obj.groups) {
+        indexCount += g.second.faces.size();
+    }
 
 
                             // Deduplicated coordinate data
@@ -99,50 +104,57 @@ Handle ModelManager::loadModel(std::string fname, RenderContext &renderContext) 
     */
     unsigned int curCoordIndex = 0;  // also total deduplicated v/t/n at the end of processing
     unsigned int curIndex = 0;       // index into indices array
-    unordered_map<IndexedCoord, unsigned int> seenVtnCombinations; // Map of <V,T,N> -> index in deduplicated array
-
-    if (obj.groups.size() > 1) {
-        cout << "can only handle one obj group (one model) per obj file right now.  Got" << obj.groups.size() << endl;
-        return Handle();
-    }
-    auto groupEntry = *obj.groups.begin();
+    unordered_map<FaceIndex, unsigned int> seenVtnCombinations; // Map of <V,T,N> -> index in deduplicated array
+    int deduplicated = 0;
 
     unsigned int curMaterial = 0;
     Model *model = new (renderContext.modelPool) Model;
 
-    model->numMeshes = (int)groupEntry.second.faces.size();
+    model->numMeshes = obj.groups.size();
     model->meshes = new (renderContext.modelPool) Mesh[model->numMeshes];
 
-    for (vector<int> faceVector : groupEntry.second.faces) {
+    for (auto &group : obj.groups) {
         Mesh * mesh = &model->meshes[curMaterial];
-
         mesh->drawContext.indexOffset = curIndex;   // starting index for all faces (v/t/n index) on this mesh
 
-        for (int i = 0; i < faceVector.size(); i += 3) {
-            // face elements are in form v/t/n with 1 as first index. 0 indicates missing element
-            IndexedCoord indexedCoord(obj.vertices[faceVector[i] - 1],
-                obj.texCoords[faceVector[i + 1] - 1],
-                obj.normals[faceVector[i + 2] - 1]);
-
-            if (seenVtnCombinations.find(indexedCoord) == seenVtnCombinations.end()) {
-                vertices[curCoordIndex] = indexedCoord.vertex;
-                texCoords[curCoordIndex] = indexedCoord.texCoord;
-                normals[curCoordIndex] = indexedCoord.normal;
-                indices[curIndex] = curIndex;
+        // TODO maybe flatten faces in OBJ file to single vector<FaceElement> since we are always dealing with triangular faces
+        for (vector<FaceElement> faceVector : group.second.faces) {
+            // TODO this requires tex/norms to all be specified
+            for (auto faceElement : faceVector) {
+                FaceIndex faceIndex(faceElement);
+                if (seenVtnCombinations.find(faceIndex) == seenVtnCombinations.end()) {
+                    // TODO this requires that v/t/n are all specified in the same pattern throughout the file.  no v/t/n followed by v//n
+                    if (faceIndex.v > 0) {
+                        vertices[curCoordIndex] = obj.vertices[faceIndex.v - 1];
+                    }
+                    if (faceIndex.t > 0) {
+                        texCoords[curCoordIndex] = obj.texCoords[faceIndex.t - 1];
+                    }
+                    if (faceIndex.n > 0) {
+                        normals[curCoordIndex] = obj.normals[faceIndex.n - 1];
+                    }
+                    indices[curIndex] = curIndex;
+                    seenVtnCombinations[faceIndex] = curCoordIndex;
+                    curCoordIndex++;
+                } else {
+                    cout << "seen faceIndex: " << seenVtnCombinations[faceIndex] <<
+                        " already seen: " << faceIndex.v << "," << faceIndex.t << "," << faceIndex.n << endl;
+                    indices[curIndex] = seenVtnCombinations[faceIndex];
+                    deduplicated++;
+                }
                 curIndex++;
-                curCoordIndex++;
-            } else {
-                indices[curIndex++] = seenVtnCombinations[indexedCoord];
             }
         }
-        mesh->drawContext.numElements = curIndex;
-        mesh->material = materialHandles[groupEntry.second.materialStates[curMaterial].materialName];
+
+        mesh->drawContext.numElements = curIndex - mesh->drawContext.indexOffset;
+        mesh->material = materialHandles[group.second.materialStates[curMaterial].materialName];
         curMaterial++;
     }
 
+    cout << "deduplicated " << deduplicated << " face elements" << endl;
 
-    Handle modelHandle = renderContext.modelGeometryPool.createObject();
-    ModelGeometryLoadData *modelGeometry = new (renderContext.modelGeometryPool.get(modelHandle)) 
+    model->modelGeometryLoadDataHandle = renderContext.modelGeometryPool.createObject();
+    ModelGeometryLoadData *modelGeometry = new (renderContext.modelGeometryPool.get(model->modelGeometryLoadDataHandle))
         ModelGeometryLoadData(renderContext.bufferObjectPool.createObject(),
         Geometry(renderContext.bufferObjectPool.createObject(),
             GPU::GeometryBufferLayout(),
@@ -157,38 +169,31 @@ Handle ModelManager::loadModel(std::string fname, RenderContext &renderContext) 
             SystemBuffer(indices, curCoordIndex * sizeof(unsigned int))));
 
 
-    return modelHandle;
+    model->vao = modelGeometry->vao;
+    return model;
 }
 
-void ModelManager::submitModelLoadCommands(ModelGeometryLoadData &data, RenderQueue &renderQueue) {
-    Handle loadVao = cmdBuilder->buildInitializeAndSetVertexArrayCommand(data.vao);
-    Handle loadVertices = cmdBuilder->buildLoadVertexArrayCommandWithParent(data.vertices.bufferData,
-        data.vertices.bufferObject,
+void ModelManager::submitModelLoadCommands(Handle modelGeometryHandle, RenderQueue &renderQueue, RenderContext &renderContext) {
+    ModelGeometryLoadData *data = renderContext.modelGeometryPool.get(modelGeometryHandle);
+
+
+
+    Handle loadVao = cmdBuilder->buildInitializeAndSetVertexArrayCommand(data->vao);
+    Handle loadVertices = cmdBuilder->buildLoadVertexArrayCommandWithParent(data->vertices.bufferData,
+        data->vertices.bufferObject,
         GPU::ShaderAttributeBinding::VERTICES,
-        data.vertices.bufferLayout,
+        data->vertices.bufferLayout,
         loadVao);
-    Handle loadTextures = cmdBuilder->buildLoadVertexArrayCommandWithParent(data.texCoords.bufferData,
-        data.texCoords.bufferObject,
+    Handle loadTextures = cmdBuilder->buildLoadVertexArrayCommandWithParent(data->texCoords.bufferData,
+        data->texCoords.bufferObject,
         GPU::ShaderAttributeBinding::UV,
-        data.texCoords.bufferLayout,
+        data->texCoords.bufferLayout,
         loadVao);
-    Handle loadNormals = cmdBuilder->buildLoadVertexArrayCommandWithParent(data.normals.bufferData,
-        data.normals.bufferObject,
+    Handle loadNormals = cmdBuilder->buildLoadVertexArrayCommandWithParent(data->normals.bufferData,
+        data->normals.bufferObject,
         GPU::ShaderAttributeBinding::NORMALS,
-        data.normals.bufferLayout,
+        data->normals.bufferLayout,
         loadVao);
-    Handle loadIndices = cmdBuilder->buildLoadIndexArrayCommandWithParent(data.indices.bufferData, data.indices.bufferObject, loadVao);
-
+    Handle loadIndices = cmdBuilder->buildLoadIndexArrayCommandWithParent(data->indices.bufferData, data->indices.bufferObject, loadVao);
     renderQueue.submit(loadVao, CommandKey());
-}
-
-
-void ModelManager::submitModelRenderCommands(Model &model, RenderContext &renderContext, RenderQueue &renderQueue) {
-
-
-    for (int i = 0; i < model.numMeshes; i++) {
-        Mesh &m = model.meshes[i];
-        Handle meshCmd = cmdBuilder->buildDrawIndexedCommand(*renderContext.bufferObjectPool.get(model.vao), m.drawContext);
-    }
-    //cmdBuilder->buildDrawIndexedCommand(vaoid )
 }

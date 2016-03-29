@@ -2,7 +2,7 @@
 
 #include "../../Types/CommonTypes.h"
 #include "../GPU/GeometryTypes.h"
-#include "../Memory/Handle.h"
+#include "../../Memory/Handle.h"
 
 /*
 Representation of a single mesh using a material.  Individual object may have several materials and are therefore
@@ -17,8 +17,8 @@ struct Mesh {
 // 2.  Used to draw a loaded model.
 struct Model {
     Handle vao;
-
-    int numMeshes;
+    Handle modelGeometryLoadDataHandle;
+    size_t numMeshes;
     Mesh *meshes;
 };
 

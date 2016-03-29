@@ -27,7 +27,8 @@ uniform Material {
 } material;
 
 void main() {
-	fragColor = texture(texSampler, uvCoord).rgb;
+fragColor = vec3(1,0,0);
+	//fragColor = texture(texSampler, uvCoord).rgb;
 //material.diffuse * lightSource.diffuse *
     //fragColor = material.diffuse * 
 				//lightSource.diffuse * 

@@ -35,7 +35,7 @@ public:
         Handle parentCommand);
 
     Handle buildLoadIndexArrayCommandWithParent(SystemBuffer systemBuffer, Handle geometryBuffer, Handle parentCommand);
-    Handle buildLoadTextureWithParent(SystemBuffer systemBuffer, GPU::TextureBufferLayout textureBufferLayout, Handle texBuffer, Handle parentCommand);
+    Handle buildLoadTextureCommand(SystemBuffer systemBuffer, GPU::TextureBufferLayout textureBufferLayout, Handle texBuffer, Handle parentCommand = Handle());
 
     /* Shader Commands */
     Handle buildSetShaderProgramCommand(GPU::ShaderProgram shaderProgram);
@@ -49,7 +49,7 @@ public:
     /* Draw Commands */
     Handle buildDrawArraysCommand(GPU::VertexArrayObject &vao, GPU::DrawContext &context);
     Handle buildDrawArraysCommandWithParent(GPU::VertexArrayObject &vao, GPU::DrawContext &context, Handle parentCommand);
-    Handle buildDrawIndexedCommand(GPU::VertexArrayObject &vao, GPU::DrawContext &indexContext);
+    Handle buildDrawIndexedCommand(GPU::VertexArrayObject &vao, GPU::DrawContext &indexContext, Handle parentCommand = Handle());
 private:
     CommandBucket *cmdBucket;
     RenderContext *renderContext;

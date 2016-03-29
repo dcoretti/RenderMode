@@ -34,10 +34,10 @@ void initState(State &state, ModelObject &obj) {
     state.activeGroups.push_back(&defaultGroup);
 }
 
-ModelObject ObjLoader::load(std::string fname) {
+ModelObject ObjLoader::load(std::string &fname) {
     cout << "loading " << fname << endl;
     ifstream in(fname);
-    if (!in.is_open()) {
+    if (!in) {
         cout << "unable to load file " << fname << endl;
         return ModelObject();
     }
@@ -63,8 +63,7 @@ ModelObject ObjLoader::load(istream &in) {
         istringstream stream(line);
         string token;
         if (!(stream >> token)) {
-            cout << "missing string token at beginning of line" << endl;
-            return obj;
+            continue;
         }
 
         // Check top level organizational tags for major state changes
@@ -92,10 +91,43 @@ ModelObject ObjLoader::load(istream &in) {
         lineNum++;
     }
     printStats(obj);
+
+    // clean up
+    if (obj.groups[defaultGroupName].faces.size() == 0) {
+        obj.groups.erase(defaultGroupName);
+    } 
+
+    // add default materials if faces were specified with no material any the material switches.
+    for (auto &group : obj.groups) {
+        if (group.second.materialStates.size() == 0 && group.second.faces.size() > 0) {
+            MaterialState defMaterial;
+            defMaterial.freeFormIndex = 0;
+            defMaterial.faceIndex = 0;
+            defMaterial.material = &obj.materials[defaultMaterialName];
+            defMaterial.materialName = defaultMaterialName;
+            group.second.materialStates.push_back(defMaterial);
+        }
+    }
+    
     return obj;
 }
 
+
+
 void ObjLoader::applyMtl(ModelObject &obj, State &curState, const string &materialName) {
+    // add default materials if faces were specified with no material any the material switches.
+    for (auto *group : curState.activeGroups) {
+        if (group->materialStates.size() == 0 && group->faces.size() > 0) {
+            MaterialState defMaterial;
+            defMaterial.freeFormIndex = 0;
+            defMaterial.faceIndex = 0;
+            defMaterial.material = &obj.materials[defaultMaterialName];
+            defMaterial.materialName = defaultMaterialName;
+            group->materialStates.push_back(defMaterial);
+        }
+    }
+
+
     if (obj.materials.find(materialName) == obj.materials.end()) {
         cout << "material with name '" << materialName << "' doesn't exist.. initializing" << endl;
         obj.materials[materialName].name = materialName;
@@ -257,7 +289,7 @@ glm::vec3 ObjLoader::parseVertex(istringstream & line, int lineNum) {
 // TODO redo face system to not copy everything so much
 // f vi/ti/ni .....
 void ObjLoader::parseFace(State &curState, istringstream &line, int lineNum) {
-    vector<int> face;
+    vector<FaceElement> face;
     string chunk;	// One v/vn/vt component of the line
     while (line >> chunk) {
         //grab a chunk and try to split chunk into v/vn/vt
@@ -269,27 +301,25 @@ void ObjLoader::parseFace(State &curState, istringstream &line, int lineNum) {
         if (delim1 == string::npos) {
             if (chunk.size() > 0) {
                 // f #
-                face.push_back(std::stoi(chunk));
-                face.push_back(0);
-                face.push_back(0);
+                face.push_back(FaceElement(std::stoi(chunk), 0, 0));
             } else {
                 cout << lineNum << " ERROR: missing face elements on face tag for chunk '" << chunk << endl;
             }
         } else if (delim1 == delim2) {
             // f #/#
-            face.push_back(std::stoi(chunk.substr(0, delim1)));
-            face.push_back(std::stoi(chunk.substr(delim1 + 1, chunk.size() - delim1)));
-            face.push_back(0);
+            face.push_back(FaceElement(std::stoi(chunk.substr(0, delim1)), std::stoi(chunk.substr(delim1 + 1, chunk.size() - delim1)), 0));
         } else {
+            FaceElement faceElement;
             // f #/#/#
-            face.push_back(std::stoi(chunk.substr(0, delim1)));
+            faceElement.v = std::stoi(chunk.substr(0, delim1));
             if (delim2 == delim1 + 1) {
                 // f #//#
-                face.push_back(0);
+                faceElement.t = 0;
             } else {
-                face.push_back(std::stoi(chunk.substr(delim1 + 1, delim2 - delim1)));
+                faceElement.t = std::stoi(chunk.substr(delim1 + 1, delim2 - delim1));
             }
-            face.push_back(std::stoi(chunk.substr(delim2 + 1, chunk.size() - delim2)));
+            faceElement.n = std::stoi(chunk.substr(delim2 + 1, chunk.size() - delim2));
+            face.push_back(faceElement);
         }
     }
     for (Group * group : curState.activeGroups) {

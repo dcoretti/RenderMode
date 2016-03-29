@@ -76,8 +76,13 @@ Handle CommandBuilder::buildLoadIndexArrayCommandWithParent(SystemBuffer systemB
     return loadIndexCmdHandle;
 }
 
-Handle CommandBuilder::buildLoadTextureWithParent(SystemBuffer systemBuffer, GPU::TextureBufferLayout textureBufferLayout, Handle textureBuffer, Handle parentCommand) {
-    Handle loadTextureCmdHandle = cmdBucket->createCommand<LoadTextureBufferCommand>(parentCommand);
+Handle CommandBuilder::buildLoadTextureCommand(SystemBuffer systemBuffer, GPU::TextureBufferLayout textureBufferLayout, Handle textureBuffer, Handle parentCommand) {
+    Handle loadTextureCmdHandle;
+    if (parentCommand.isValidHandle()) {
+        loadTextureCmdHandle = cmdBucket->createCommand<LoadTextureBufferCommand>(parentCommand);
+    } else {
+        loadTextureCmdHandle = cmdBucket->createCommand<LoadTextureBufferCommand>(CommandKey());
+    }
     LoadTextureBufferCommand *cmd = cmdBucket->getCommandData<LoadTextureBufferCommand>(loadTextureCmdHandle);
 
     cmd->systemBuffer = systemBuffer;
@@ -104,8 +109,13 @@ Handle CommandBuilder::buildDrawArraysCommandWithParent(GPU::VertexArrayObject &
 }
 
 
-Handle CommandBuilder::buildDrawIndexedCommand(GPU::VertexArrayObject &vao, GPU::DrawContext &indexContext) {
-    Handle drawArrayCmdHandle = cmdBucket->createCommand<DrawVertexArrayCommand>(CommandKey());
+Handle CommandBuilder::buildDrawIndexedCommand(GPU::VertexArrayObject &vao, GPU::DrawContext &indexContext, Handle parentCommand) {
+    Handle drawArrayCmdHandle;
+    if (parentCommand.isValidHandle()) {
+        drawArrayCmdHandle = cmdBucket->createCommand<DrawVertexArrayCommand>(parentCommand);
+    } else {
+        drawArrayCmdHandle = cmdBucket->createCommand<DrawVertexArrayCommand>(CommandKey());
+    }
 
     DrawVertexArrayCommand *cmd = cmdBucket->getCommandData<DrawVertexArrayCommand>(drawArrayCmdHandle);
     cmd = new (cmd) DrawVertexArrayCommand(true, vao, indexContext);

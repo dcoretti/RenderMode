@@ -37,8 +37,11 @@ public:
     ModelManager(size_t meshDataPoolSize, size_t textureDataPoolSize, CommandBuilder *cmdBuilder);
     ~ModelManager();
 
-    Handle loadModel(std::string fname, RenderContext &rendercontext);
+    Model * loadModelGeometry(std::string &fname, RenderContext &rendercontext);
     void clearTransientPools();
+
+    void submitModelLoadCommands(Handle modelGeometryHandle, RenderQueue &renderQueue, RenderContext &renderContext);
+
 private:
     struct TextureInfo {
         Handle textureHandle;
@@ -50,9 +53,6 @@ private:
 
 
 
-    void submitModelLoadCommands(ModelGeometryLoadData &data, RenderQueue &renderQueue);
-    
-    void submitModelRenderCommands(Model &model, RenderContext &context, RenderQueue &renderQueue);
 
 
     // Transient data pools priort to laod into GPU
@@ -65,29 +65,26 @@ private:
 };
 
 
-struct IndexedCoord {
-    IndexedCoord(glm::vec3 vertex, glm::vec2 texCoord, glm::vec3 normal) :vertex(vertex), texCoord(texCoord), normal(normal) {}
-
-    glm::vec3 vertex;
-    glm::vec2 texCoord;
-    glm::vec3 normal;
-
-    bool operator==(const IndexedCoord& other) const {
-        return vertex == other.vertex && texCoord == other.texCoord && normal == other.normal;
+struct FaceIndex {
+    FaceIndex(FaceElement e):v(e.v),t(e.t),n(e.n) {}
+    FaceIndex(unsigned int v, unsigned int t, unsigned int n) :v(v),t(t),n(n) {}
+    bool operator==(const FaceIndex &other) const {
+        return v == other.v && t == other.t && n == other.n;
     }
+    unsigned int v, t, n;
 };
+
 
 namespace std {
     template<>
-    struct hash<IndexedCoord> {
-        size_t operator()(IndexedCoord const& i) const {
-            hash<glm::vec3> h;
-            hash<glm::vec2> h2;
-            size_t seed = 0;
-            glm::detail::hash_combine(seed, h(i.vertex));
-            glm::detail::hash_combine(seed, h(i.normal));
-            glm::detail::hash_combine(seed, h2(i.texCoord));
-            return seed;
+    struct hash<FaceIndex> {
+        size_t operator()(FaceIndex const &i) const {
+            std::hash<unsigned int> h;
+            size_t hash = 1;
+            hash = hash * 17 + h(i.v);
+            hash = hash * 31 + h(i.t);
+            hash = hash * 13 + h(i.n);
+            return hash;
         }
     };
 }
