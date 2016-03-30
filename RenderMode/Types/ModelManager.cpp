@@ -64,17 +64,6 @@ Model * ModelManager::loadModelGeometry(std::string &fname, RenderContext &rende
 
     // TODO these should be allocated on some pool
     map<string, Handle> materialHandles;
-    size_t indexCount = 0;
-
-    // :( upper bound on index count since the rest of this process will only deduplicate indices.
-    for (const auto &g : obj.groups) {
-        indexCount += g.second.faces.size();
-    }
-
-
-                            // Deduplicated coordinate data
-                            // todo switch to placement new[]
-
 
     // convert all materials
     for (auto materialEntry : obj.materials) {
@@ -85,94 +74,38 @@ Model * ModelManager::loadModelGeometry(std::string &fname, RenderContext &rende
         materialHandles[materialEntry.second.name] = materialHandle;
     }
 
-    // initialize containers for completed model/meshes
-
-    /*
-    for each face
-    if v/t/n not in seenVtnCombinations
-    add v/t/n actual values behind v/t/n index to deduplicated vertices,texCoords,normals  at position i
-    add new IndexedCoord->i to seenVtnCombinations
-    add i to new face list for mesh
-    else
-    add seenVtnCombinations[v/t/n] to face list for mesh
-
-    NOTE each f v/t/n indexes into vertices texCoords, normals separately.  Deduplication by v/t/n tuple necessary
-    */
-
-    vector<glm::vec3> vertices;
-    vector<glm::vec2> texCoords;
-    vector<glm::vec3> normals;
-    vector<unsigned int> indices;
-
-
-    unsigned int curCoordIndex = 0;  // total deduplicated v/t/n at the end of processing
-    unsigned int curIndex = 0;       // index into indices array
-    unordered_map<FaceIndex, unsigned int> seenVtnCombinations; // Map of <V,T,N> -> index in deduplicated array
-    int deduplicated = 0;
 
     unsigned int curMaterial = 0;
-    Model *model = new (renderContext.modelPool) Model;
 
+    Model *model = new (renderContext.modelPool) Model;
     model->numMeshes = obj.groups.size();
     model->meshes = new (renderContext.modelPool) Mesh[model->numMeshes];
 
+
+    int numIndices = 0;
+    for (const auto &g : obj.groups) {
+        for (const auto &f : g.second.faces) {
+            numIndices += f.size();
+        }
+    }
+    glm::vec3 *vertices = (glm::vec3*)meshDataPool->alloc(sizeof(glm::vec3) * numIndices);
+    glm::vec2 *texCoords = (glm::vec2*)meshDataPool->alloc(sizeof(glm::vec2) * numIndices);
+    glm::vec3 *normals = (glm::vec3*)meshDataPool->alloc(sizeof(glm::vec3) * numIndices);
+    unsigned int *indices = (unsigned int *)meshDataPool->alloc(sizeof(unsigned int) * numIndices);
+    int curIndex = 0;
     for (auto &group : obj.groups) {
         Mesh * mesh = &model->meshes[curMaterial];
-        mesh->drawContext.indexOffset = curIndex;   // starting index for all faces (v/t/n index) on this mesh
-
-        // TODO maybe flatten faces in OBJ file to single vector<FaceElement> since we are always dealing with triangular faces
+        mesh->drawContext.indexOffset = curIndex;   
         for (vector<FaceElement> faceVector : group.second.faces) {
-            // TODO this requires tex/norms to all be specified
             for (auto faceElement : faceVector) {
-                FaceIndex faceIndex(faceElement);
-                if (seenVtnCombinations.find(faceIndex) == seenVtnCombinations.end()) {
-                    // TODO this requires that v/t/n are all specified in the same pattern throughout the file.  no v/t/n followed by v//n
-                    if (faceIndex.v > 0) {
-                        vertices.push_back(obj.vertices[faceIndex.v - 1]);
-                    }
-                    if (faceIndex.t > 0) {
-                        texCoords.push_back(obj.texCoords[faceIndex.t - 1]);
-                    }
-                    if (faceIndex.n > 0) {
-                        normals.push_back(obj.normals[faceIndex.n - 1]);
-                    }
-                    indices.push_back(curIndex);
-                    seenVtnCombinations[faceIndex] = curCoordIndex;
-                    curCoordIndex++;
-                } else {
-                    cout << "seen faceIndex: " << seenVtnCombinations[faceIndex] <<
-                        " already seen: " << faceIndex.v << "," << faceIndex.t << "," << faceIndex.n << endl;
-                    indices.push_back(seenVtnCombinations[faceIndex]);
-                    deduplicated++;
-                }
+                vertices[curIndex] = obj.vertices[faceElement.v - 1];
+                normals[curIndex] = obj.normals[faceElement.n - 1];
+                texCoords[curIndex] = obj.texCoords[faceElement.t - 1];
+                indices[curIndex] = curIndex;
                 curIndex++;
             }
         }
-
         mesh->drawContext.numElements = curIndex - mesh->drawContext.indexOffset;
-        mesh->material = materialHandles[group.second.materialStates[curMaterial].materialName];
-        curMaterial++;
-    }
-
-    cout << "deduplicated " << deduplicated << " face elements" << endl;
-    cout << "Final number of elements: " << vertices.size() << endl;
-    cout << "final number of indices: " << indices.size() << endl;
-
-    if (vertices.size() != texCoords.size() && texCoords.size() != normals.size()) {
-        cout << "Somehow didn't end up with same size for each buffer????" << endl;
-    }
-    // copy to final buffer
-    glm::vec3 *finalVertices = (glm::vec3*)meshDataPool->alloc(sizeof(glm::vec3) * vertices.size());
-    glm::vec2 *finalTexCoords = (glm::vec2*)meshDataPool->alloc(sizeof(glm::vec2) * vertices.size());
-    glm::vec3 *finalNormals = (glm::vec3*)meshDataPool->alloc(sizeof(glm::vec3) * vertices.size());
-    unsigned int *finalIndices = (unsigned int *)meshDataPool->alloc(sizeof(unsigned int) * indexCount);
-    for (int i = 0; i < indexCount; i++) {
-        finalIndices[i] = indices[i];
-    }
-    for (int i = 0; i < vertices.size(); i++) {
-        finalVertices[i] = vertices[i];
-        finalNormals[i] = normals[i];
-        finalTexCoords[i] = texCoords[i];
     }
 
     model->modelGeometryLoadDataHandle = renderContext.modelGeometryPool.createObject();
@@ -180,15 +113,15 @@ Model * ModelManager::loadModelGeometry(std::string &fname, RenderContext &rende
         ModelGeometryLoadData(renderContext.bufferObjectPool.createObject(),
         Geometry(renderContext.bufferObjectPool.createObject(),
             GPU::GeometryBufferLayout(),
-            SystemBuffer(finalVertices, curCoordIndex * sizeof(glm::vec3))),
+            SystemBuffer(vertices, numIndices * sizeof(glm::vec3))),
         Geometry(renderContext.bufferObjectPool.createObject(),
             GPU::GeometryBufferLayout(),
-            SystemBuffer(finalNormals, curCoordIndex * sizeof(glm::vec3))),
+            SystemBuffer(normals, numIndices * sizeof(glm::vec3))),
         Geometry(renderContext.bufferObjectPool.createObject(),
             GPU::GeometryBufferLayout(2, 0),
-            SystemBuffer(finalTexCoords, curCoordIndex * sizeof(glm::vec2))),
+            SystemBuffer(texCoords, numIndices * sizeof(glm::vec2))),
         Indices(renderContext.bufferObjectPool.createObject(),
-            SystemBuffer(finalIndices, indices.size() * sizeof(unsigned int))));
+            SystemBuffer(indices, numIndices * sizeof(unsigned int))));
 
 
     model->vao = modelGeometry->vao;
