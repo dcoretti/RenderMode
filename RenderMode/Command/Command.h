@@ -189,3 +189,12 @@ struct UpdateUniformBufferCommand : public CommandData<UpdateUniformBufferComman
     size_t offset;
 };
 const Command::DispatchCommand CommandData<UpdateUniformBufferCommand>::dispatchFn = &dispatchUpdateUniformBuffer;
+
+
+void dispatchSetTexture(const void * data, RenderContext &context);
+struct SetTextureCommand : public CommandData<SetTextureCommand> {
+    GPU::TextureBufferObject textureBufferObj;
+    unsigned int textureBufferSlot;  // max is GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS
+    int uniformLocation;
+};
+const Command::DispatchCommand CommandData<SetTextureCommand>::dispatchFn = &dispatchSetTexture;

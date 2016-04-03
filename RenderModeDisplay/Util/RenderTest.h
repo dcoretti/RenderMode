@@ -293,7 +293,7 @@ public:
 
     Model * model;
     void modelLoad() {
-        model = mgr->loadModelGeometry(std::string("cube.obj"), *renderContext);
+        model = mgr->loadModelGeometry(std::string("dodecahedron.obj"), *renderContext);
         ModelGeometryLoadData *geometryData = renderContext->modelGeometryPool.get(model->modelGeometryLoadDataHandle);
 
         // Setup shader
@@ -385,6 +385,7 @@ public:
             vaoParentCommand);
 
         Handle texBuffer = renderContext->bufferObjectPool.createObject();
+        textureBuffer = renderContext->bufferObjectPool.get(texBuffer);
         GPU::TextureBufferLayout textureLayout;
         textureLayout.width = w;
         textureLayout.height = h;
@@ -398,6 +399,7 @@ public:
         renderQueue.submit(vaoParentCommand, CommandKey());
 
         executed += renderQueue.execute(*cmdBucket, *renderContext);
+
 
         cout << "commands executed for load: " << executed << endl;
         cout << "qsize: " << renderQueue.numCommands() << endl;
@@ -423,7 +425,7 @@ public:
 
         cmdBuilder->buildUpdateUniformBufferCommand(*materialUbo, (void*)&material, sizeof(GPU::Uniform::Material), 0, drawCmd);
         cmdBuilder->buildUpdateUniformBufferCommand(*lightUbo, (void*)&light, sizeof(GPU::Uniform::LightSource), 0, drawCmd);
-
+        cmdBuilder->buildSetTexturecommand(*textureBuffer, 0, shader->uniformLocations.diffuseTexture, drawCmd);
         cmdBuilder->buildDrawArraysCommandWithParent(*renderContext->bufferObjectPool.get(vaoHandle), drawContext, drawCmd);
     }
 
@@ -448,6 +450,7 @@ public:
 
     GPU::Uniform::LightSource light;
     GPU::Uniform::Material material;
+    GPU::TextureBufferObject *textureBuffer;
 
 
     Handle vaoHandle;

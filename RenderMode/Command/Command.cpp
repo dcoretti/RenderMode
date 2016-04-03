@@ -66,3 +66,8 @@ void dispatchUpdateUniformBuffer(const void *data, RenderContext &context) {
     const UpdateUniformBufferCommand * cmdData = static_cast<const UpdateUniformBufferCommand *>(data);
     RenderApiDispatch::updateUniformBuffer(context, cmdData);
 }
+
+void dispatchSetTexture(const void * data, RenderContext &context) {
+    const SetTextureCommand * cmdData = static_cast<const SetTextureCommand *>(data);
+    RenderApiDispatch::setTexture(context, cmdData);
+}

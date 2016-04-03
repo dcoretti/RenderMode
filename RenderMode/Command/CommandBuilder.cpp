@@ -91,6 +91,22 @@ Handle CommandBuilder::buildLoadTextureCommand(SystemBuffer systemBuffer, GPU::T
     return loadTextureCmdHandle;
 }
 
+Handle CommandBuilder::buildSetTexturecommand(GPU::TextureBufferObject textureBufferObj, unsigned int textureBufferSlot, int uniformLocation, Handle parentCommand) {
+    Handle setTextureCmdHandle;
+    if (parentCommand.isValidHandle()) {
+        setTextureCmdHandle = cmdBucket->createCommand<SetTextureCommand>(parentCommand);
+    } else {
+        setTextureCmdHandle = cmdBucket->createCommand<SetTextureCommand>(CommandKey());
+    }
+
+    // TODO maybe commands like this should be wrapped in a shader management setup to go from a GPU::ShaderProgram-> load cmds.
+    SetTextureCommand *cmd = cmdBucket->getCommandData<SetTextureCommand>(setTextureCmdHandle);
+    cmd->textureBufferObj = textureBufferObj;
+    cmd->textureBufferSlot = textureBufferSlot;
+    cmd->uniformLocation = uniformLocation;
+    return setTextureCmdHandle;
+}
+
 
 Handle CommandBuilder::buildDrawArraysCommand(GPU::VertexArrayObject &vao, GPU::DrawContext &context) {
     Handle drawArrayCmdHandle = cmdBucket->createCommand<DrawVertexArrayCommand>(CommandKey());

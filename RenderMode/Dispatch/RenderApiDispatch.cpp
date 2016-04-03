@@ -206,3 +206,10 @@ void RenderApiDispatch::updateUniformBuffer(RenderContext &context, const Update
     glBufferSubData(GL_UNIFORM_BUFFER, cmd->offset, cmd->bufferSize, cmd->data);
     glBindBuffer(GL_UNIFORM_BUFFER, 0);
 }
+
+
+void RenderApiDispatch::setTexture(RenderContext &context, const SetTextureCommand *cmd) {
+    glActiveTexture(GL_TEXTURE0 + cmd->textureBufferSlot);
+    glBindTexture(GL_TEXTURE_2D, cmd->textureBufferObj.bufferId);
+    glUniform1i(cmd->uniformLocation, cmd->textureBufferSlot);
+}

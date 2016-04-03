@@ -12,6 +12,7 @@ namespace RenderApiDispatch {
     void loadArrayBuffer(RenderContext &context, const LoadArrayBufferCommand *cmd);
     void loadIndexArrayBuffer(RenderContext &context, const LoadIndexArrayBufferCommand *cmd);
     void loadTextureBuffer(RenderContext &context, const LoadTextureBufferCommand *cmd);
+    void setTexture(RenderContext &context, const SetTextureCommand *cmd);
     // Draw
     //static void enableVertexArray(RenderContext &context, const EnableVertexArrayCommand *cmd);
     void drawVertexArray(RenderContext &context, const DrawVertexArrayCommand *cmd);

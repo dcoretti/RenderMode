@@ -10,7 +10,8 @@ in float lightVertexDist;
 
 out vec3 fragColor;
 
-uniform sampler2D texSampler;
+uniform sampler2D diffuseTexture;
+//uniform sampler2D normalMap;
 
 
 uniform LightSource {
@@ -27,7 +28,7 @@ uniform Material {
 } material;
 
 void main() {
-	fragColor = texture(texSampler, uvCoord).rgb;
+	fragColor = texture(diffuseTexture, uvCoord).rgb;
 //material.diffuse * lightSource.diffuse *
     //fragColor = material.diffuse * 
 				//lightSource.diffuse * 

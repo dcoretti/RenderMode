@@ -92,14 +92,15 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
     RenderTest t;
     bool didTest = false;
     unsigned int frameCounter = 0;
+    cout << " MAX TEXTURES: " << GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS << endl;
     glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
     while (!glfwWindowShouldClose(window)) {
         glfwPollEvents();
         if (!didTest) {
             //t.loadIndexCommands();
             //t.attemptLoadCommands(true);
-            t.modelLoad();
-            //t.texLoad(true);
+            //t.modelLoad();
+            t.texLoad(true);
             didTest = true;
         }
 

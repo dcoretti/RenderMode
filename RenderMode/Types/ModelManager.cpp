@@ -88,6 +88,7 @@ Model * ModelManager::loadModelGeometry(std::string &fname, RenderContext &rende
             numIndices += f.size();
         }
     }
+    // TODO should this handle when we only have some of the components or is v/t/n always going to be specified?
     glm::vec3 *vertices = (glm::vec3*)meshDataPool->alloc(sizeof(glm::vec3) * numIndices);
     glm::vec2 *texCoords = (glm::vec2*)meshDataPool->alloc(sizeof(glm::vec2) * numIndices);
     glm::vec3 *normals = (glm::vec3*)meshDataPool->alloc(sizeof(glm::vec3) * numIndices);
