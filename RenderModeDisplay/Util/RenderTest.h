@@ -126,6 +126,14 @@ unsigned char texData[] = {
     0x00, 0x00, 0x00,  0x00, 0x00, 0x00,  0xff, 0x00, 0x00,  0xff, 0x00, 0x00,
 };
 
+// GREEN
+unsigned char texData2[] = {
+    0x00, 0xff, 0x00,  0x00, 0xff, 0x00,  0x00, 0xff, 0x00,  0x00, 0xff, 0x00,
+    0x00, 0xff, 0x00,  0x00, 0xff, 0x00,  0x00, 0xff, 0x00,  0x00, 0xff, 0x00,
+    0x00, 0xff, 0x00,  0x00, 0xff, 0x00,  0x00, 0xff, 0x00,  0x00, 0xff, 0x00,
+    0x00, 0xff, 0x00,  0x00, 0xff, 0x00,  0x00, 0xff, 0x00,  0x00, 0xff, 0x00,
+};
+
 
 void loadTextFile(char * fname, std::string &loadedFile) {
     std::ifstream file(fname);
@@ -290,6 +298,108 @@ public:
     //    drawContext.numElements = 6;
     //    drawCmd = cmdBuilder->buildDrawIndexedCommand(*renderContext->vaoPool.get(vaoHandle), drawContext);
     //}
+
+    // todo move this to model load as part of material.
+
+    struct ModelDrawContext {
+        Model * model;
+
+
+        Handle texBufferHandle;
+        GPU::TextureBufferObject *texBuffer; // convenience ptr to actual buffer
+
+
+        GPU::Uniform::Material material;
+
+        glm::mat4 m;
+        glm::mat4 mvp;
+        glm::mat4 mv;
+
+        Handle staticDrawCommand;
+    };
+
+    void submitLoadTexture(ModelDrawContext *drawContext, void *texData, size_t size, int width, int height) {
+        drawContext->texBufferHandle = renderContext->bufferObjectPool.createObject();
+        drawContext->texBuffer = renderContext->bufferObjectPool.get(drawContext->texBufferHandle);
+
+        GPU::TextureBufferLayout textureLayout;
+        textureLayout.width = width;
+        textureLayout.height = height;
+        textureLayout.textureFormat = GPU::TextureFormat::RGB;
+
+        Handle loadTexCmd = cmdBuilder->buildLoadTextureCommand(SystemBuffer(texData, size),
+            textureLayout,
+            drawContext->texBufferHandle);
+        renderQueue.submit(loadTexCmd, CommandKey());
+    }
+
+    ModelDrawContext shape1;
+    ModelDrawContext shape2;
+
+    void buildStaticDrawCommand(ModelDrawContext &drawContext, GPU::ShaderProgram *shaderProgram) {
+        // Camera transformations
+        drawContext.mvp = p * v * drawContext.m;
+        drawContext.mv = v * drawContext.m;
+
+        GPU::ShaderProgram *shader = renderContext->shaderProgramsPool.get(shaderProgramHandle);
+        Handle cmd = cmdBuilder->buildSetMatrixUniformCommand(shader->uniformLocations.mvp, glm::value_ptr(drawContext.mvp), 1);
+        cmdBuilder->buildSetMatrixUniformCommand(shader->uniformLocations.mv, glm::value_ptr(drawContext.mv), 1, cmd);
+        cmdBuilder->buildSetMatrixUniformCommand(shader->uniformLocations.v, glm::value_ptr(v), 1, cmd);
+        cmdBuilder->buildSetMatrixUniformCommand(shader->uniformLocations.m, glm::value_ptr(drawContext.m), 1, cmd);
+
+        cmdBuilder->buildUpdateUniformBufferCommand(*materialUbo, (void*)&drawContext.material, sizeof(GPU::Uniform::Material), 0, cmd);
+        //cmdBuilder->buildUpdateUniformBufferCommand(*lightUbo, (void*)&light, sizeof(GPU::Uniform::LightSource), 0, cmd); // remove?
+        cmdBuilder->buildSetTexturecommand(*drawContext.texBuffer, 0, shader->uniformLocations.diffuseTexture, cmd);
+        for (int i = 0; i < drawContext.model->numMeshes; i++) {
+            Mesh &mesh = drawContext.model->meshes[i];
+            cmdBuilder->buildDrawIndexedCommand(*renderContext->bufferObjectPool.get(drawContext.model->vao), mesh.drawContext, cmd);
+        }
+
+        drawContext.staticDrawCommand = cmd;
+    }
+
+    void doubleModel() {
+        // Setup shader
+        std::string vertTex;
+        std::string fragTex;
+        loadTextFile("Util/Lighting.vert", vertTex);
+        loadTextFile("Util/Lighting.frag", fragTex);
+        setupShaders(vertTex.c_str(), fragTex.c_str(), true);
+        GPU::ShaderProgram *shaderProgram = renderContext->shaderProgramsPool.get(shaderProgramHandle);
+
+
+
+        shape1.model = mgr->loadModelGeometry(std::string("dodecahedron.obj"), *renderContext);
+        shape1.m = glm::translate(glm::mat4(1.0f), glm::vec3(-2.0f, 0.0f, -2.0f));
+        submitLoadTexture(&shape1, (void *)&texData, sizeof(texData), w, h);    // SPLOTCHY RED
+
+
+        shape2.model = mgr->loadModelGeometry(std::string("cube.obj"), *renderContext);
+        shape2.m = glm::translate(glm::mat4(1.0f), glm::vec3(2.0f, 0.0f, -2.0f));
+        submitLoadTexture(&shape2, (void *)&texData2, sizeof(texData), w, h);   // GREEN
+
+
+
+        // submit model loads
+        mgr->submitModelLoadCommands(shape1.model->modelGeometryLoadDataHandle, renderQueue, *renderContext);
+        mgr->submitModelLoadCommands(shape2.model->modelGeometryLoadDataHandle, renderQueue, *renderContext);
+        int exec = renderQueue.execute(*cmdBucket, *renderContext);
+
+
+        p = glm::perspective(glm::radians(90.0f), 640.0f / 480.0f, 0.1f, 100.0f);
+        v = glm::lookAt(glm::vec3(0.0f, 0.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+
+        buildStaticDrawCommand(shape1, shaderProgram);
+        buildStaticDrawCommand(shape2, shaderProgram);
+    }
+
+    void drawShapes() {
+        renderQueue.submit(shape1.staticDrawCommand, CommandKey());
+        renderQueue.submit(shape2.staticDrawCommand, CommandKey());
+
+        renderQueue.execute(*cmdBucket, *renderContext);
+    }
+
 
     Model * model;
     void modelLoad() {

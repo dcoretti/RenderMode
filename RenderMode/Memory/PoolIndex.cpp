@@ -1,6 +1,6 @@
 #include "PoolIndex.h"
+#include<cassert>
 
-#include <iostream>
 PoolIndex::PoolIndex(size_t indexSize):indices(indexSize) {
 }
 
@@ -9,9 +9,8 @@ Handle PoolIndex::createHandle() {
     // Handle.index points to the index number in the sparse array.
     // That contains
     handle.index = indices.allocate();
-    if (handle.index == -1) {
-        std::cout << "no more room in indices!" << std::endl;
-    }
+    assert(handle.index != -1);
+
     InnerHandle * index = indices.get(handle.index);
 
     if (index->version < baseVersion) {

@@ -100,13 +100,14 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
             //t.loadIndexCommands();
             //t.attemptLoadCommands(true);
             //t.modelLoad();
-            t.texLoad(true);
+            //t.texLoad(true);
+            t.doubleModel();
             didTest = true;
         }
 
         glClear(GL_COLOR_BUFFER_BIT);
-        t.draw();
-
+        //t.draw();
+        t.drawShapes();
         glfwSwapBuffers(window);
         frameCounter++;
         //cout << frameCounter << endl;
