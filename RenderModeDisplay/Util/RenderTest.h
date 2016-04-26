@@ -327,7 +327,7 @@ public:
         textureLayout.height = height;
         textureLayout.textureFormat = GPU::TextureFormat::RGB;
 
-        Handle loadTexCmd = cmdBuilder->buildLoadTextureCommand(SystemBuffer(texData, size),
+        Handle loadTexCmd = cmdBuilder->buildLoadTextureCommand(SystemBuffer(texData, (int)size),
             textureLayout,
             drawContext->texBufferHandle);
         renderQueue.submit(loadTexCmd, CommandKey());

@@ -23,6 +23,9 @@
     <ClInclude Include="Util\RenderTest.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Util\FontTest.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="Util\Lighting.vert" />

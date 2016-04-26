@@ -1,0 +1,166 @@
+#include "Font.h"
+#include <stdio.h>
+#include <assert.h>
+
+#include <iostream>
+#include <algorithm>
+using std::endl;
+using std::cout;
+
+#define STB_TRUETYPE_IMPLEMENTATION
+#include "stb_truetype.h"
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+#include "stb_image_write.h"
+
+namespace Text {
+
+    // init children such that is child is a top/bottom split, the top half height is equal to firstHalfH.
+    // If left/right split (isChildTopBottom == false) the left half width is equal to firstHalfW
+    void GlyphNode::initChildren(int firstHalfW, int firstHalfH, bool isChildTopBottom) {
+        child[0] = new GlyphNode();
+        child[1] = new GlyphNode();
+
+        if (isChildTopBottom) {
+            child[0]->x = x;
+            child[0]->y = y + height - firstHalfH;
+
+            child[1]->x = x;
+            child[1]->y = y;
+
+            child[0]->width = width;
+            child[1]->width = width;
+            child[0]->height = firstHalfH;
+            child[1]->height = height - firstHalfH;
+        } else {
+            child[0]->x = x;
+            child[0]->y = y;
+
+            child[1]->x = x + firstHalfW;
+            child[1]->y = y;
+
+            child[0]->width = firstHalfW;
+            child[1]->width = width - firstHalfW;
+            child[0]->height = height;
+            child[1]->height = height;
+        }
+    }
+
+    GlyphNode * insert(GlyphNode * tree, Glyph *glyph, bool topBottom) {
+        // leaf
+        if (tree->child[0] == nullptr && tree->child[1] == nullptr) {
+            if (tree->width < glyph->width || tree->height < glyph->height) {
+                return nullptr;
+            }
+            if (tree->glyph != nullptr) {
+                return nullptr;
+            }
+
+            // either fits perfectly or needs to be split
+            if (glyph->height == tree->height && glyph->width == tree->width) {
+                // insert here!
+                tree->glyph = glyph;
+                return tree;
+            } else {
+                // split node into perfect size and remainder
+                tree->initChildren(glyph->width, glyph->height, !topBottom);
+                return insert(tree->child[0], glyph, !topBottom); // glyph will fit into left half
+            }
+
+        } else {
+            // non-leaf
+            GlyphNode *node = insert(tree->child[0], glyph, !topBottom);
+            if (node != nullptr) {
+                return node;
+            } else {
+                return insert(tree->child[1], glyph, !topBottom);
+            }
+        }
+    }
+
+    GlyphNode * insert(GlyphNode * tree, Glyph * glyph) {
+        // All trees starts with top half bottom half level
+        return insert(tree, glyph, false);
+    }
+
+    void packGlyphs(unsigned char *texture, int texW, int texH, Glyph* glyphs, int numGlyphs, stbtt_fontinfo *font, float scaleX, float scaleY) {
+        GlyphNode *tree = new GlyphNode();
+        tree->x = 0;
+        tree->y = 0;
+        tree->width = texW;
+        tree->height = texH;
+
+        // insert the first node
+        assert("texture not tall enough for largest character" && texH >= glyphs[0].height);
+        assert("texture not wide enough for largest character" && texW >= glyphs[0].width);
+
+        for (int i = 0; i < numGlyphs; i++) {
+            GlyphNode * node = insert(tree, &glyphs[i]);
+            assert("glyph could not fit!" && node != nullptr);
+            if (node != nullptr) {
+                node->glyph = &glyphs[i];
+                glyphs[i].bitmapX = node->x;
+                glyphs[i].bitmapY = node->y;
+
+                // get the subset of the texture where the glyph is at the top left (bitmap 0,0 is top right)
+                int offsetRow = texH - (node->y + glyphs[i].height);
+                // subsection of the texture such that the current element is at the top left
+                unsigned char * textureStart = texture + (offsetRow * texW + node->x);  
+
+
+                stbtt_MakeCodepointBitmap(font, 
+                    textureStart, 
+                    glyphs[i].width, 
+                    glyphs[i].height, 
+                    texW, 
+                    scaleX, 
+                    scaleY, 
+                    glyphs[i].codePoint);
+                cout << "packed glyph " << (char)glyphs[i].codePoint << " at {" << node->x << ", " << node->y << "}" << endl;
+            }
+        }
+        delete tree;
+    }
+
+    void loadFontToTexture(Font &font, char * fname, unsigned char * texture, int texW, int texH) {
+        stbtt_fontinfo fontInfo;
+        unsigned char *buffer  = new unsigned char[1024 * 1024 * 10];
+
+        FILE * f = fopen(fname, "rb");
+        assert("File unable to be opened" && f != NULL);
+
+        fread(buffer, 1, 1024*1024*10, f);
+        fclose(f);
+
+        stbtt_InitFont(&fontInfo, buffer, stbtt_GetFontOffsetForIndex(buffer, 0));
+        font.scaleY = stbtt_ScaleForPixelHeight(&fontInfo, font.heightPixels);
+        font.scaleX = font.scaleY;
+        stbtt_GetFontVMetrics(&fontInfo, &font.ascent, &font.descent, &font.lineGap);
+
+        font.baseline = font.ascent * (int)font.scaleY;
+
+        char start = '!';
+        char end = '~';
+        int numGlyphs = end - start;
+        Glyph *glyphs = new Glyph[end - start];
+        for (int c = 0; c < numGlyphs; c++) {
+            //int xOffset, yOffset;  // offset from glyph origin to top-left of bitmap
+            int x0, y0, x1, y1;
+            stbtt_GetCodepointBitmapBox(&fontInfo, c + start, font.scaleX, font.scaleY, &x0, &y0, &x1, &y1);
+            glyphs[c].height = y1 - y0;
+            glyphs[c].width = x1 - x0;
+            glyphs[c].codePoint = c + start;
+            stbtt_GetCodepointHMetrics(&fontInfo, c + start, &glyphs[c].advanceWidth, &glyphs[c].leftSideBearing);
+        }
+
+        // sort in size order to get a bit better packing by inserting in size order
+        std::sort(glyphs, glyphs + numGlyphs,
+            [](Glyph &a, Glyph &b) -> bool { return std::max(a.width, a.height) > std::max(b.width, b.height); });
+        packGlyphs(texture, texW, texH, glyphs, numGlyphs, &fontInfo, font.scaleX, font.scaleY);
+        std::sort(glyphs, glyphs + numGlyphs,
+            [](Glyph &a, Glyph &b) -> bool { return a.codePoint < b.codePoint; });
+
+        assert(stbi_write_png("out.png", texW, texH, 1, texture, texW) > 0);
+        delete[] buffer;
+    }
+    // bakefontbitmap can do this all in one go
+}

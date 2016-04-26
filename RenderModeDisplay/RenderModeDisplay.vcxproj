@@ -22,6 +22,7 @@
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Util\FontTest.h" />
     <ClInclude Include="Util\RenderTest.h" />
   </ItemGroup>
   <ItemGroup>

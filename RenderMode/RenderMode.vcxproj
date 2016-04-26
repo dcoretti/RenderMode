@@ -142,6 +142,7 @@
     <ClCompile Include="Memory\LinearAllocator.cpp" />
     <ClCompile Include="Memory\PoolIndex.cpp" />
     <ClCompile Include="Render\RenderQueue.cpp" />
+    <ClCompile Include="Types\Application\Font\Font.cpp" />
     <ClCompile Include="Types\ModelManager.cpp" />
     <ClCompile Include="Util\ObjLoader.cpp" />
   </ItemGroup>
@@ -159,11 +160,14 @@
     <ClInclude Include="Memory\SparseArray.h" />
     <ClInclude Include="Render\RenderContext.h" />
     <ClInclude Include="Render\RenderQueue.h" />
+    <ClInclude Include="Types\Application\Font\Font.h" />
+    <ClInclude Include="Types\Application\Font\stb_truetype.h" />
     <ClInclude Include="Types\CommonTypes.h" />
     <ClInclude Include="Types\GPU\GeometryTypes.h" />
     <ClInclude Include="Types\Application\Material.h" />
     <ClInclude Include="Types\Application\Model.h" />
     <ClInclude Include="Types\GPU\ShaderTypes.h" />
+    <ClInclude Include="Types\Math\Math.h" />
     <ClInclude Include="Types\ModelManager.h" />
     <ClInclude Include="Util\ObjLoader.h" />
   </ItemGroup>
