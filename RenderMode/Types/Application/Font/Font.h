@@ -1,5 +1,8 @@
 #pragma once
 
+#include "../../Core/HashTable.h"
+#include <cstdint>
+
 namespace Text {
 
     struct Glyph {
@@ -13,18 +16,36 @@ namespace Text {
         int bitmapY;
     };
 
+    class Font {
+    public:
+        Font() : kernTable(512), 
+            baseline(0),
+            scaleX(1.0f),
+            scaleY(1.0f),
+            heightPixels(0.0f),
+            ascent(0),
+            descent(0),
+            lineGap(0),
+            glyphs(nullptr) {
+        }
 
-    struct Font {
+
         int baseline;
-        float scaleX{ 1.0f };
-        float scaleY{ 1.0f };
+        float scaleX;
+        float scaleY;
 
         // defined prior to rasterizing
         float heightPixels; // font height in pixels
         int ascent;
         int descent;
         int lineGap;
+
+        Glyph *glyphs{ nullptr };
+        HashTablei kernTable;
     };
+
+
+    int getCodePointPairKey(int a, int b);
 
     void loadFontToTexture(Font &font, char * fname, unsigned char * texture, int texW, int texH);
 

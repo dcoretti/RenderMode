@@ -152,15 +152,39 @@ namespace Text {
             stbtt_GetCodepointHMetrics(&fontInfo, c + start, &glyphs[c].advanceWidth, &glyphs[c].leftSideBearing);
         }
 
-        // sort in size order to get a bit better packing by inserting in size order
+        // sort in size order to get a bit better packing by inserting in height order.
+        // Chose height due to the fact that the tree has a property of causing an entire strip along the x axis to be constrained by the height
+        // of the previous glyph.  This is due to the constraint of a glyph having to fit perfectly in a given rectangle where we split a parent
+        // rectangle top to bottom first then left to right.  The top/bottom split means that any further division can fit no taller of a glyph.
+        // Sorting by height means that any subsequent glyph will fit potentially right next to the previous.
         std::sort(glyphs, glyphs + numGlyphs,
-            [](Glyph &a, Glyph &b) -> bool { return std::max(a.width, a.height) > std::max(b.width, b.height); });
+            [](Glyph &a, Glyph &b) -> bool { return a.height > b.height; });
         packGlyphs(texture, texW, texH, glyphs, numGlyphs, &fontInfo, font.scaleX, font.scaleY);
         std::sort(glyphs, glyphs + numGlyphs,
             [](Glyph &a, Glyph &b) -> bool { return a.codePoint < b.codePoint; });
 
+
+        for (int i = 0; i < numGlyphs; i++) {
+            for (int j = 0; j < numGlyphs; j++) {
+                int kernAdvance = stbtt_GetCodepointKernAdvance(&fontInfo, glyphs[i].codePoint, glyphs[j].codePoint);
+                if (kernAdvance != 0) {
+                    assert(glyphs[i].codePoint < INT16_MAX && glyphs[i].codePoint > INT16_MIN);
+                    assert(glyphs[j].codePoint < INT16_MAX && glyphs[i].codePoint > INT16_MIN);
+
+                    font.kernTable.put(getCodePointPairKey(glyphs[i].codePoint, glyphs[j].codePoint), kernAdvance);
+                }
+            }
+        }
+
+
+
         assert(stbi_write_png("out.png", texW, texH, 1, texture, texW) > 0);
         delete[] buffer;
+        font.kernTable.dump();
     }
-    // bakefontbitmap can do this all in one go
+
+    int Text::getCodePointPairKey(int a, int b) {
+        return (a << 16) | (b & 0xffff);
+    }
 }
+

@@ -163,11 +163,12 @@
     <ClInclude Include="Types\Application\Font\Font.h" />
     <ClInclude Include="Types\Application\Font\stb_truetype.h" />
     <ClInclude Include="Types\CommonTypes.h" />
+    <ClInclude Include="Types\Core\HashTable.h" />
     <ClInclude Include="Types\GPU\GeometryTypes.h" />
     <ClInclude Include="Types\Application\Material.h" />
     <ClInclude Include="Types\Application\Model.h" />
     <ClInclude Include="Types\GPU\ShaderTypes.h" />
-    <ClInclude Include="Types\Math\Math.h" />
+    <ClInclude Include="Types\Core\Math.h" />
     <ClInclude Include="Types\ModelManager.h" />
     <ClInclude Include="Util\ObjLoader.h" />
   </ItemGroup>
