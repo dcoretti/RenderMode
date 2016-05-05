@@ -5,14 +5,12 @@
 
 class RenderQueue {
 public:
-    static const size_t defaultQueueSize = 256;
-
-    RenderQueue(unsigned int maxCommands);
-    RenderQueue();
+    RenderQueue(CommandBucket *cmdBucket, RenderContext * renderContext, unsigned int queueSize);
     ~RenderQueue();
 
+
     bool submit(Handle cmd, CommandKey key);
-    int execute(CommandBucket &cmdBucket, RenderContext &context);
+    int execute();
     Handle pop();
 
     bool isEmpty();
@@ -24,4 +22,6 @@ private:
 
     unsigned int curCommands{ 0 };
     unsigned int maxCommands;
+    CommandBucket *cmdBucket;
+    RenderContext *renderContext;
 };

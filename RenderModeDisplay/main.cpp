@@ -44,7 +44,7 @@ void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
 int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
     setupConsole();
-    FontTest::testFont();
+    //FontTest::testFont();
 
     GLFWwindow* window;
     glewExperimental = GL_TRUE;

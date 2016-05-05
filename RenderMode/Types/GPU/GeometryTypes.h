@@ -39,15 +39,24 @@ namespace GPU {
     };
 
     // Byte format of texture data held in a system buffer
-    enum TextureFormat {
-        RGB,
-        RGBA,
-        BGR,
+    enum TextureSystemBufferDataFormat {
+        TEXTURE_RGB,
+        TEXTURE_RGBA,
+        TEXTURE_BGR,
+        TEXTURE_R8  // single channel
     };
+
+    enum TextureInternalBufferFormat {
+        TEXTURE_INTERNAL_DEPTH,
+        TEXTURE_INTERNAL_RED,    // single channel texture
+        TEXTURE_INTERNAL_RGB,
+        TEXTURE_INTERNAL_RGBA
+    }; 
 
     struct TextureBufferLayout {
         int width;
         int height;
-        TextureFormat textureFormat;
+        TextureSystemBufferDataFormat systemTextureFormat;
+        TextureInternalBufferFormat internalFormat;
     };
 }

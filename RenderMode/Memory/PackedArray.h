@@ -34,9 +34,7 @@ PackedArray<T>::PackedArray(size_t size) : size(size) {
 // Get an index to the data in the array.
 template<typename T>
 int PackedArray<T>::allocate() {
-    if (end == size) {
-        return -1;
-    }
+    DBG_ASSERT(end != size, "Packed array full!");
     // (re)initialize data at that location
     T * data = new (&dataArray[end]) T;
     return end++;
@@ -58,9 +56,7 @@ int PackedArray<T>::remove(int index) {
 // Get data at a given index
 template<typename T>
 T * PackedArray<T>::get(int index) {
-    if (index > end) {
-        return nullptr;
-    }
+    DBG_ASSERT(index <= end, "Index %d not valid", index);
     return &dataArray[index];
 }
 

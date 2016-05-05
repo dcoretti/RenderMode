@@ -1,5 +1,5 @@
 #include "LinearAllocator.h"
-
+#include "../Util/Common.h"
 LinearAllocator::LinearAllocator(size_t size) {
     // TODO move actual allocation to outside of this to allow platform specific memory allocation without new
     start = new char[size]();
@@ -13,9 +13,9 @@ LinearAllocator::~LinearAllocator() {
 }
 
 void * LinearAllocator::alloc(size_t size) {
-    if (size == 0 || cur + size > end) {
-        return nullptr;
-    }
+    DBG_ASSERT(size > 0, "attempted to allocate 0 bytes");
+    DBG_ASSERT(cur + size <= end, "Allocator out of space.  Attempted to allocate %d but only %d bytes remain", size, end - cur);
+
     void * block = cur;
     cur += size;
     return block;

@@ -53,20 +53,13 @@ Handle IndexedPool<Data>::createObject() {
 
 template <typename Data>
 Data * IndexedPool<Data>::get(Handle handle) {
-    if (handle.version < baseVersion) {
-        cout << "WARNING: handle version lower than base version. Handle to data prior to full clear of pool." << endl;
-        return nullptr;
-    }
+    DBG_ASSERT(handle.version >= baseVersion, "Handle version %d lower than expected base version of %d", handle.version, baseVersion);
     // get index from pool, retrieve data from index.
     Handle *index = indices.get(handle.index);
-    if (index == nullptr) {
-        return nullptr;
-    }
-    if (index->version != handle.version) {
-        cout << "WARNING: (get) expected index version of" << handle.version << " but instead got: " << index->version
-            << " for handleindex : " << handle.index << " and index: " << index->index << endl;
-        return nullptr;
-    }
+    DBG_ASSERT(index != nullptr, "index not found");
+    DBG_ASSERT(index->version == handle.version, "Expected index version of %d but instead got %d for handle index %d and index %d",
+        handle.version, index->version, handle.index, index->index);
+
     return dataPool.get(index->index);
 }
 
@@ -74,14 +67,9 @@ Data * IndexedPool<Data>::get(Handle handle) {
 template <typename Data>
 void IndexedPool<Data>::deleteObject(Handle handle) {
     Handle * dataIndex = indices.get(handle.index);
-    if (dataIndex == nullptr) {
-        return;
-    }
-    if (dataIndex->version != handle.version) {
-        cout << "WARNING: (deleteObject) expected index version of" << handle.version << " but instead got: " << dataIndex->version
-            << " for handleindex : " << handle.index << " and index: " << dataIndex->index << endl;
-        return;
-    }
+    DBG_ASSERT(dataIndex != nullptr, "null dataIndex for handle with index %d, version %d", handle.index, handle.version);
+    DBG_ASSERT(dataIndex->version == handle.version, "Expected index version of %d but instead got %d for handleindex %d and index %d",
+        handle.version, dataIndex->version, handle.index, dataIndex->index);
 
     dataIndex->version++; // mark a deleted object as such to avoid further get() calls to fail for that index
     indices.remove(handle.index); // mark index as free

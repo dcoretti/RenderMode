@@ -155,9 +155,9 @@ public:
     RenderTest() {
         renderContext = new RenderContext(1024, 1024, 1024, 1024, 1024);
         cmdBucket = new CommandBucket(100, 1024 * 1024 * 5);
-        cmdBuilder = new CommandBuilder(*cmdBucket, *renderContext);
+        cmdBuilder = new CommandBuilder(*cmdBucket);
         mgr = new ModelManager(1024 * 30, 1024, cmdBuilder);
-
+        renderQueue = new RenderQueue(cmdBucket, renderContext, 256);
     }
 
     ~RenderTest() {
@@ -165,6 +165,7 @@ public:
         delete cmdBucket;
         delete mgr;
         delete renderContext;
+        delete renderQueue;
     }
 
     int setupShaders(const char * vertex,const char *frag, bool setupUBO = false) {
@@ -202,19 +203,19 @@ public:
                 GPU::Uniform::defaultMaterialUniformBlockBinding);
         }
 
-        renderQueue.submit(loadShaderCmd, CommandKey());
-        renderQueue.submit(lightHandle, CommandKey());
-        renderQueue.submit(materialHandle, CommandKey());
+        renderQueue->submit(loadShaderCmd, CommandKey());
+        renderQueue->submit(lightHandle, CommandKey());
+        renderQueue->submit(materialHandle, CommandKey());
 
         int executedStart = executed;
-        executed += renderQueue.execute(*cmdBucket, *renderContext);
+        executed += renderQueue->execute();
 
         GPU::ShaderProgram *shader = renderContext->shaderProgramsPool.get(shaderProgramHandle);
         setShaderCmd = cmdBuilder->buildSetShaderProgramCommand(*shader);
 
 
-        renderQueue.submit(setShaderCmd, CommandKey());
-        executed += renderQueue.execute(*cmdBucket, *renderContext);
+        renderQueue->submit(setShaderCmd, CommandKey());
+        executed += renderQueue->execute();
 
         cout << "Executed by shader creation: " << executed - executedStart << endl;
 
@@ -325,12 +326,12 @@ public:
         GPU::TextureBufferLayout textureLayout;
         textureLayout.width = width;
         textureLayout.height = height;
-        textureLayout.textureFormat = GPU::TextureFormat::RGB;
+        textureLayout.systemTextureFormat = GPU::TextureSystemBufferDataFormat::TEXTURE_RGB;
 
         Handle loadTexCmd = cmdBuilder->buildLoadTextureCommand(SystemBuffer(texData, (int)size),
             textureLayout,
             drawContext->texBufferHandle);
-        renderQueue.submit(loadTexCmd, CommandKey());
+        renderQueue->submit(loadTexCmd, CommandKey());
     }
 
     ModelDrawContext shape1;
@@ -381,9 +382,9 @@ public:
 
 
         // submit model loads
-        mgr->submitModelLoadCommands(shape1.model->modelGeometryLoadDataHandle, renderQueue, *renderContext);
-        mgr->submitModelLoadCommands(shape2.model->modelGeometryLoadDataHandle, renderQueue, *renderContext);
-        int exec = renderQueue.execute(*cmdBucket, *renderContext);
+        mgr->submitModelLoadCommands(shape1.model->modelGeometryLoadDataHandle, *renderQueue, *renderContext);
+        mgr->submitModelLoadCommands(shape2.model->modelGeometryLoadDataHandle, *renderQueue, *renderContext);
+        int exec = renderQueue->execute();
 
 
         p = glm::perspective(glm::radians(90.0f), 640.0f / 480.0f, 0.1f, 100.0f);
@@ -394,10 +395,10 @@ public:
     }
 
     void drawShapes() {
-        renderQueue.submit(shape1.staticDrawCommand, CommandKey());
-        renderQueue.submit(shape2.staticDrawCommand, CommandKey());
+        renderQueue->submit(shape1.staticDrawCommand, CommandKey());
+        renderQueue->submit(shape2.staticDrawCommand, CommandKey());
 
-        renderQueue.execute(*cmdBucket, *renderContext);
+        renderQueue->execute();
     }
 
 
@@ -414,18 +415,18 @@ public:
         setupShaders(vertTex.c_str(), fragTex.c_str(), true);
 
         // Load model into gpu
-        mgr->submitModelLoadCommands(model->modelGeometryLoadDataHandle, renderQueue, *renderContext);
+        mgr->submitModelLoadCommands(model->modelGeometryLoadDataHandle, *renderQueue, *renderContext);
 
         Handle texBuffer = renderContext->bufferObjectPool.createObject();
         GPU::TextureBufferLayout textureLayout;
         textureLayout.width = w;
         textureLayout.height = h;
-        textureLayout.textureFormat = GPU::TextureFormat::RGB;
+        textureLayout.systemTextureFormat = GPU::TextureSystemBufferDataFormat::TEXTURE_RGB;
         Handle loadTexCmd = cmdBuilder->buildLoadTextureCommand(SystemBuffer((void*)&texData, sizeof(texData)),
             textureLayout,
             texBuffer);
-        renderQueue.submit(loadTexCmd, CommandKey());
-        int exec = renderQueue.execute(*cmdBucket, *renderContext);
+        renderQueue->submit(loadTexCmd, CommandKey());
+        int exec = renderQueue->execute();
         cout << "executed " << exec << " load cmds for model!" << endl;
 
         // Camera transformations
@@ -499,20 +500,20 @@ public:
         GPU::TextureBufferLayout textureLayout;
         textureLayout.width = w;
         textureLayout.height = h;
-        textureLayout.textureFormat = GPU::TextureFormat::RGB;
+        textureLayout.systemTextureFormat = GPU::TextureSystemBufferDataFormat::TEXTURE_RGB;
         Handle loadTexCmd = cmdBuilder->buildLoadTextureCommand(SystemBuffer((void*)&texData, sizeof(texData)),
             textureLayout, 
             texBuffer, 
             vaoParentCommand);
 
 
-        renderQueue.submit(vaoParentCommand, CommandKey());
+        renderQueue->submit(vaoParentCommand, CommandKey());
 
-        executed += renderQueue.execute(*cmdBucket, *renderContext);
+        executed += renderQueue->execute();
 
 
         cout << "commands executed for load: " << executed << endl;
-        cout << "qsize: " << renderQueue.numCommands() << endl;
+        cout << "qsize: " << renderQueue->numCommands() << endl;
 
         GPU::DrawContext drawContext;
         drawContext.indexOffset = 0;
@@ -541,8 +542,8 @@ public:
 
 
     void draw() {
-        renderQueue.submit(drawCmd, CommandKey());
-        renderQueue.execute(*cmdBucket, *renderContext);
+        renderQueue->submit(drawCmd, CommandKey());
+        renderQueue->execute();
     }
 
     Handle drawCmd;
@@ -568,7 +569,7 @@ public:
     CommandBucket *cmdBucket;
     CommandBuilder *cmdBuilder;
     RenderContext *renderContext;
-    RenderQueue renderQueue;
+    RenderQueue *renderQueue;
 
     glm::mat4 p;
     glm::mat4 m;

@@ -1,5 +1,5 @@
 #include "PoolIndex.h"
-#include<cassert>
+#include "../Util/Common.h"
 
 PoolIndex::PoolIndex(size_t indexSize):indices(indexSize) {
 }
@@ -9,7 +9,7 @@ Handle PoolIndex::createHandle() {
     // Handle.index points to the index number in the sparse array.
     // That contains
     handle.index = indices.allocate();
-    assert(handle.index != -1);
+    DBG_ASSERT(handle.index != -1, "Handle passed in has an uninitialized index value");
 
     InnerHandle * index = indices.get(handle.index);
 

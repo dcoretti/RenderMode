@@ -1,11 +1,10 @@
 #include "RenderQueue.h"
 
-RenderQueue::RenderQueue(): RenderQueue(defaultQueueSize) {
-}
-
-RenderQueue::RenderQueue(unsigned int maxCommands): maxCommands(maxCommands) {
-    queue = new Handle[maxCommands];
-    
+RenderQueue::RenderQueue(CommandBucket *cmdBucket, RenderContext * renderContext, unsigned int queueSize):
+    cmdBucket(cmdBucket), 
+    renderContext(renderContext), 
+    maxCommands(queueSize) {
+    queue = new Handle[queueSize];
 }
 
 RenderQueue::~RenderQueue() {
@@ -40,13 +39,13 @@ bool RenderQueue::isEmpty() {
     return curCommands == 0;
 }
 
-int RenderQueue::execute(CommandBucket &cmdBucket, RenderContext &context) {
+int RenderQueue::execute() {
     int commandsRun = 0;
     while (!isEmpty()) {
         Handle handle = pop();
-        Command * cmd = cmdBucket.getCommand(handle);
+        Command * cmd = cmdBucket->getCommand(handle);
         while (cmd != nullptr) {
-            cmd->dispatch(cmdBucket.getDataFromCommand(cmd), context);
+            cmd->dispatch(cmdBucket->getDataFromCommand(cmd), *renderContext);
             cmd = cmd->next;
             commandsRun++;
         }

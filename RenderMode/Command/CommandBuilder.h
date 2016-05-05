@@ -18,10 +18,12 @@
 
     Two levels of building are done here: high level transformation of application types to commands (eg loading meshes), and mid level transformation to commands (eg loading vertex arrays)
 */
+
+// TODO: remove cmdBucket to make all of these a static set of commands, or better yet, a namespace of methods
 class CommandBuilder {
 public:
-    CommandBuilder(CommandBucket &cmdBucket, RenderContext &renderContext) 
-        : cmdBucket(&cmdBucket), renderContext(&renderContext) { }
+    CommandBuilder(CommandBucket &cmdBucket) 
+        : cmdBucket(&cmdBucket) { }
     /*  Low level methods (underlying data-types and cmd definitions) */
 
 
@@ -52,5 +54,4 @@ public:
     Handle buildDrawIndexedCommand(GPU::VertexArrayObject &vao, GPU::DrawContext &indexContext, Handle parentCommand = Handle());
 private:
     CommandBucket *cmdBucket;
-    RenderContext *renderContext;
 };

@@ -21,7 +21,7 @@
     General Linked set of commands, each with a set of 
 */
 struct Command {
-    typedef void(*DispatchCommand)(const void * data, RenderContext & context);
+    typedef void(*DispatchCommand)(const void *data, RenderContext &context);
 
     // Dispatch function ptr that knows how to decode data and send it to the API level render api
     DispatchCommand dispatch{ nullptr };

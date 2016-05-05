@@ -16,9 +16,7 @@ public:
 
     Handle allocate(size_t size) {
         void * data = pool->alloc(size);
-        if (data == nullptr) {
-            return Handle();
-        }
+        DBG_ASSERT(data != nullptr, "Could not allocate data");
         return index->createHandle(data);
     }
 

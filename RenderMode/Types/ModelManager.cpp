@@ -85,7 +85,7 @@ Model * ModelManager::loadModelGeometry(std::string &fname, RenderContext &rende
     int numIndices = 0;
     for (const auto &g : obj.groups) {
         for (const auto &f : g.second.faces) {
-            numIndices += f.size();
+            numIndices += (int)f.size();
         }
     }
     // TODO should this handle when we only have some of the components or is v/t/n always going to be specified?

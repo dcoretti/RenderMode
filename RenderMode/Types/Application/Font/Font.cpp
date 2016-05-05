@@ -1,6 +1,6 @@
 #include "Font.h"
 #include <stdio.h>
-#include <assert.h>
+#include "../../../Util/Common.h"
 
 #include <iostream>
 #include <algorithm>
@@ -11,6 +11,8 @@ using std::cout;
 #include "stb_truetype.h"
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "stb_image_write.h"
+
+
 
 namespace Text {
 
@@ -90,12 +92,12 @@ namespace Text {
         tree->height = texH;
 
         // insert the first node
-        assert("texture not tall enough for largest character" && texH >= glyphs[0].height);
-        assert("texture not wide enough for largest character" && texW >= glyphs[0].width);
+        DBG_ASSERT(texH >= glyphs[0].height, "texture not tall enough for largest character");
+        DBG_ASSERT(texW >= glyphs[0].width, "texture not wide enough for largest character");
 
         for (int i = 0; i < numGlyphs; i++) {
             GlyphNode * node = insert(tree, &glyphs[i]);
-            assert("glyph could not fit!" && node != nullptr);
+            DBG_ASSERT(node != nullptr, "glyph could not fit!");
             if (node != nullptr) {
                 node->glyph = &glyphs[i];
                 glyphs[i].bitmapX = node->x;
@@ -126,7 +128,7 @@ namespace Text {
         unsigned char *buffer  = new unsigned char[1024 * 1024 * 10];
 
         FILE * f = fopen(fname, "rb");
-        assert("File unable to be opened" && f != NULL);
+        DBG_ASSERT(f != NULL, "File unable to be opened");
 
         fread(buffer, 1, 1024*1024*10, f);
         fclose(f);
@@ -168,8 +170,8 @@ namespace Text {
             for (int j = 0; j < numGlyphs; j++) {
                 int kernAdvance = stbtt_GetCodepointKernAdvance(&fontInfo, glyphs[i].codePoint, glyphs[j].codePoint);
                 if (kernAdvance != 0) {
-                    assert(glyphs[i].codePoint < INT16_MAX && glyphs[i].codePoint > INT16_MIN);
-                    assert(glyphs[j].codePoint < INT16_MAX && glyphs[i].codePoint > INT16_MIN);
+                    DBG_ASSERT(glyphs[i].codePoint < INT16_MAX && glyphs[i].codePoint > INT16_MIN, "code point out of bounds");
+                    DBG_ASSERT(glyphs[j].codePoint < INT16_MAX && glyphs[i].codePoint > INT16_MIN, "code point out of bounds");
 
                     font.kernTable.put(getCodePointPairKey(glyphs[i].codePoint, glyphs[j].codePoint), kernAdvance);
                 }
@@ -178,9 +180,8 @@ namespace Text {
 
 
 
-        assert(stbi_write_png("out.png", texW, texH, 1, texture, texW) > 0);
+        DBG_ASSERT(stbi_write_png("out.png", texW, texH, 1, texture, texW) > 0);
         delete[] buffer;
-        font.kernTable.dump();
     }
 
     int Text::getCodePointPairKey(int a, int b) {

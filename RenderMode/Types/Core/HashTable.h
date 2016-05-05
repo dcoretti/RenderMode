@@ -2,7 +2,7 @@
 
 //  Super simple open addressed linear probing hash table for integer mapping.
 //  Table size is a power of two to allow bitwise operations and nodes have a reserved empty value of intmax
-//  Simplified version outlined here: http://preshing.com/20130605/the-worlds-simplest-lock-free-hash-table/
+//  Simplified from version outlined here: http://preshing.com/20130605/the-worlds-simplest-lock-free-hash-table/
 class HashTablei {
     static  constexpr float loadFactor = 0.75f;
     static const int defaultCapacity = 16;
@@ -31,6 +31,7 @@ public:
     int remove(int key) {
         return remove(key, table);
     }
+
 private:
     void put(int key, int val, HTNodei* hTable) {
         int i = probe(key, hTable);

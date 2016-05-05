@@ -1,4 +1,5 @@
 #pragma once
+#include "../Util/Common.h"
 
 template<typename T>
 struct DataElement {
@@ -38,10 +39,7 @@ private:
 
 template<typename T>
 int SparseArray<T>::allocate() {
-    if (end == maxSize && numElements == maxSize) {
-        return -1;	// full :(
-    }
-
+    DBG_ASSERT(end == maxSize && numElements == maxSize, "Sparse array full!");
     int dataLoc;
     if (free == NO_MORE_FREE) {
         dataLoc = end++;
@@ -56,9 +54,7 @@ int SparseArray<T>::allocate() {
 
 template <typename T>
 void SparseArray<T>::remove(int index) {
-    if (numElements == 0 || index >= end) {
-        return;
-    }
+    DBG_ASSERT(numElements == 0 || index >= end, "Attempted to remove an element out of bounds: %d", index);
 
     if (index == maxSize - 1) {
         end--;
